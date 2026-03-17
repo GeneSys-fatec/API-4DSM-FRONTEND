@@ -31,6 +31,26 @@ const mockEstacoes: Estacao[] = [
   },
 ];
 
+const columns = [
+  {
+    key: "nome",
+    header: "Nome",
+    tdClassName: "font-semibold text-gray-900",
+    render: (item: Estacao) => item.nome,
+  },
+  {
+    key: "cidade",
+    header: "Cidade",
+    render: (item: Estacao) => item.cidade,
+  },
+  {
+    key: "codigo",
+    header: "Código",
+    tdClassName: "font-mono",
+    render: (item: Estacao) => item.codigo,
+  },
+];
+
 export function StationSelect() {
   const navigate = useNavigate();
   const [termoBusca, setTermoBusca] = useState("");
@@ -70,7 +90,9 @@ export function StationSelect() {
         {estacoesFiltradas.length > 0 ? (
           <TableBase
             data={estacoesFiltradas}
-            rowClassName="cursor-pointer hover:bg-[#e8f5e9]/50 group"
+            columns={columns}
+            rowClassName="hover:bg-[#e8f5e9]/50 group"
+            getRowKey={(item) => item.id}
             onRowClick={(item) => navigate(`/admin/dashboard/${item.id}`)}
             renderActions={() => (
               <span className="text-tecsus-green font-bold text-sm flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all">

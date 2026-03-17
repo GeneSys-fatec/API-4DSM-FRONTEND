@@ -58,7 +58,7 @@ export function Dashboard() {
             </h2>
           </div>
           <span className="text-sm text-gray-500 font-medium">
-            Updated: 11:13 AM
+            Atualizado: 11:13 AM
           </span>
         </div>
 

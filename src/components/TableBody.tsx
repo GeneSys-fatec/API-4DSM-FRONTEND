@@ -1,48 +1,65 @@
-import type { Estacao } from '@/services/station-service';
 import type { ReactNode } from 'react';
 
-interface TableRow extends Estacao{
-  id: string;
-  nome: string;
-  codigo: string;
+export interface TableColumn<T> {
+  key: string;
+  header: ReactNode;
+  render: (item: T, index: number) => ReactNode;
+  thClassName?: string;
+  tdClassName?: string;
 }
 
-interface TableBaseProps {
-  data: TableRow[];
-  renderActions: (item: TableRow) => ReactNode;
-  onRowClick?: (item: TableRow) => void;
+interface TableBaseProps<T> {
+  data: T[];
+  columns: TableColumn<T>[];
+  renderActions?: (item: T, index: number) => ReactNode;
+  onRowClick?: (item: T, index: number) => void;
   rowClassName?: string;
+  getRowKey?: (item: T, index: number) => string;
 }
 
-export function TableBase({ data, renderActions, onRowClick, rowClassName }: TableBaseProps) {
+export function TableBase<T>({
+  data,
+  columns,
+  renderActions,
+  onRowClick,
+  rowClassName = '',
+  getRowKey,
+}: TableBaseProps<T>) {
   return (
     <div className="w-full overflow-x-auto">
       <table className="w-full text-left border-collapse min-w-[600px]">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
             <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">#</th>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Nome</th>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Cidade</th>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Código</th>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Ações</th>
+            {columns.map((column) => (
+              <th
+                key={column.key}
+                className={`px-6 py-4 text-xs font-bold text-gray-400 uppercase ${column.thClassName ?? ''}`}
+              >
+                {column.header}
+              </th>
+            ))}
+            {renderActions ? (
+              <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Ações</th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
           {data.map((item, index) => (
             <tr
-              key={item.id}
-              onClick={() => onRowClick?.(item)}
-              className={`border-b border-gray-50 last:border-0 transition-all ${rowClassName}`}
+              key={getRowKey ? getRowKey(item, index) : String(index)}
+              onClick={() => onRowClick?.(item, index)}
+              className={`border-b border-gray-50 last:border-0 transition-all ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName}`}
             >
               <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">
                 {(index + 1).toString().padStart(2, '0')}
               </td>
-              <td className="px-6 py-4 text-sm font-semibold text-gray-900">{item.nome}</td>
-              <td className="px-6 py-4 text-sm text-gray-500">{item.cidade}</td>
-              <td className="px-6 py-4 text-sm text-gray-500 font-mono">{item.codigo}</td>
-              <td className="px-6 py-4 text-right">
-                {renderActions(item)}
-              </td>
+              {columns.map((column) => (
+                <td key={column.key} className={`px-6 py-4 text-sm text-gray-500 ${column.tdClassName ?? ''}`}>
+                  {column.render(item, index)}
+                </td>
+              ))}
+              {renderActions ? <td className="px-6 py-4 text-right">{renderActions(item, index)}</td> : null}
             </tr>
           ))}
         </tbody>
