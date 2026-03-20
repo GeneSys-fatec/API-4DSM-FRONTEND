@@ -1,4 +1,4 @@
-// src/pages/Dashboard.tsx
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -29,7 +29,7 @@ export function Dashboard() {
   const [parametroAtivo, setParametroAtivo] = useState<ParametroClima>("Temperatura");
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
 
-  // CORREÇÃO 1: Aqui mudamos para WeatherResponse, que é a resposta completa da API
+  
   const [weatherData, setWeatherData] = useState<WeatherResponse | null>(null);
   
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +62,7 @@ export function Dashboard() {
       : baseClass + "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
   };
 
-  // CORREÇÃO 2: Adicionamos o ".current" antes de ler os valores (ex: weatherData.current.temperature_2m)
+  
   const parametrosDaEstacao = [
     {
       nome: "Temperatura",
@@ -163,7 +163,7 @@ export function Dashboard() {
             <DashboardChart 
               parametro={parametroAtivo} 
               periodo={periodoAtivo} 
-              // CORREÇÃO 3: Agora weatherData.hourly existe e o erro some
+              
               dadosHistoricos={weatherData ? weatherData.hourly : null}
             />
           </div>

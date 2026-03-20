@@ -1,26 +1,41 @@
 import { useMemo, useState } from "react";
-import {Search, Settings2,
-  Edit2, Trash2,
-  ArrowUpDown, Filter,
-  ChevronLeft, ChevronRight,} from "lucide-react";
-import { TableBase } from "../components/TableBody";
+import {
+  Search,
+  Settings2,
+  Edit2,
+  Trash2,
+  ArrowUpDown,
+  Filter,
+} from "lucide-react";
+import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
 import { DeleteStationModal } from "../components/DeleteStationModal";
 import { EditStationModal } from "../components/EditStationModal";
-import {deleteStation, stationFilter,
-  type Estacao, useCreateStationModal,
-  useEditStationModal, useStationsList,
+import {
+  deleteStation,
+  stationFilter,
+  type Estacao,
+  useCreateStationModal,
+  useEditStationModal,
+  useStationsList,
 } from "../services/station-service";
 
 export function StationManage() {
   const [termoBusca, setTermoBusca] = useState("");
-  const { stations: estacoes, isLoading, errorMessage, reload } = useStationsList();
+  const {
+    stations: estacoes,
+    isLoading,
+    errorMessage,
+    reload,
+  } = useStationsList();
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
 
   const [deleteTarget, setDeleteTarget] = useState<Estacao | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
+    null,
+  );
 
   const openDeleteModal = (station: Estacao) => {
     setDeleteErrorMessage(null);
@@ -56,6 +71,47 @@ export function StationManage() {
   const estacoesFiltradas = useMemo(() => {
     return stationFilter(estacoes, termoBusca);
   }, [estacoes, termoBusca]);
+
+  const colunasDaTabela: TableColumn<Estacao>[] = [
+    {
+      key: "nome",
+      header: "NOME",
+      render: (item) => (
+        <span className="font-semibold text-gray-900 uppercase">
+          {item.nome}
+        </span>
+      ),
+    },
+    {
+      key: "cidade",
+      header: "CIDADE",
+      render: (item) => (
+        <span className="text-gray-600">{item.cidade || "-"}</span>
+      ),
+    },
+    {
+      key: "codigo",
+      header: "CÓDIGO",
+      render: (item) => (
+        <span className="text-gray-600">{item.codigo || "-"}</span>
+      ),
+    },
+    {
+      key: "isActive",
+      header: "STATUS",
+      render: (item) => (
+        <span
+          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${
+            item.isActive
+              ? "bg-tecsus-green/10 text-tecsus-green"
+              : "bg-red-100 text-red-600"
+          }`}
+        >
+          {item.isActive ? "ATIVO" : "INATIVO"}
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
@@ -96,27 +152,36 @@ export function StationManage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col flex-1 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col flex-1 overflow-hidden pb-4">
         <div className="flex-1 overflow-auto">
           {isLoading ? (
-            <div className="p-8 text-sm text-gray-500">Carregando estações...</div>
+            <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
+              Carregando estações...
+            </div>
           ) : errorMessage ? (
-            <div className="p-8 text-sm text-red-500">{errorMessage}</div>
+            <div className="p-8 text-sm text-red-500 flex justify-center items-center">
+              {errorMessage}
+            </div>
+          ) : estacoesFiltradas.length === 0 ? (
+            <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
+              Nenhuma estação encontrada. Cadastre sua primeira estação!
+            </div>
           ) : (
             <TableBase
               data={estacoesFiltradas}
+              columns={colunasDaTabela}
               rowClassName="hover:bg-gray-50/50"
               renderActions={(item) => (
                 <div className="flex justify-end gap-4">
                   <button
                     title="Configurar Limites"
-                    className="text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
+                    className="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
                   >
                     <Settings2 size={18} />
                   </button>
                   <button
                     title="Editar Estação"
-                    className="text-gray-500 hover:text-tecsus-green transition-colors focus:outline-none"
+                    className="text-gray-400 hover:text-tecsus-green transition-colors focus:outline-none"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -132,7 +197,7 @@ export function StationManage() {
                       openDeleteModal(item);
                     }}
                     title="Excluir Estação"
-                    className="text-gray-500 hover:text-red-500 transition-colors focus:outline-none"
+                    className="text-gray-400 hover:text-red-500 transition-colors focus:outline-none"
                   >
                     <Trash2 size={18} />
                   </button>
@@ -141,41 +206,10 @@ export function StationManage() {
             />
           )}
         </div>
-          
-          {/* remover essa paginação mockada  */}
-        <div className="border-t border-gray-100 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white">
-          <div className="w-full sm:w-auto invisible hidden sm:block"></div>
-
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <button className="p-1 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors">
-              <ChevronLeft size={16} />
-            </button>
-            <span className="px-2 cursor-pointer hover:text-gray-900">1</span>
-            <span className="px-2 w-6 h-6 flex items-center justify-center bg-tecsus-green text-white rounded-full font-medium">
-              2
-            </span>
-            <span className="px-2 cursor-pointer hover:text-gray-900">3</span>
-            <span className="px-2 cursor-pointer hover:text-gray-900">4</span>
-            <span className="px-1">...</span>
-            <span className="px-2 cursor-pointer hover:text-gray-900">10</span>
-            <button className="p-1 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <div className="w-full sm:w-auto flex justify-end">
-            <button className="flex items-center justify-between gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded-md text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-              Display 10 items
-              <ChevronRight size={14} className="text-gray-400 rotate-90" />
-            </button>
-          </div>
-        </div>
       </div>
 
       <CreateStationModal modal={createModal} />
-
       <EditStationModal modal={editModal} />
-
       <DeleteStationModal
         isOpen={Boolean(deleteTarget)}
         stationName={deleteTarget?.nome}

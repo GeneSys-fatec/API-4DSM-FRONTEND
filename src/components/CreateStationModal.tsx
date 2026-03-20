@@ -64,8 +64,9 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
               />
             </label>
 
+            {/* ---> AQUI ESTÁ A CORREÇÃO: Mudei o label para "Cidade/Endereço" <--- */}
             <label className="flex flex-col gap-1 sm:col-span-2">
-              <span className="text-xs font-bold text-gray-400 uppercase">Endereço</span>
+              <span className="text-xs font-bold text-gray-400 uppercase">Cidade / Endereço</span>
               <input
                 value={modal.form.address}
                 onChange={(e) => modal.setForm((s) => ({ ...s, address: e.target.value }))}
@@ -92,10 +93,11 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
             </label>
 
             <label className="flex flex-col gap-1">
-              <span className="text-xs font-bold text-gray-400 uppercase">Status</span>
+              <span className="text-xs font-bold text-gray-400 uppercase">Descrição do Status</span>
               <input
                 value={modal.form.status}
                 onChange={(e) => modal.setForm((s) => ({ ...s, status: e.target.value }))}
+                placeholder="Ex: Operante, Manutenção"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
               />
             </label>
@@ -109,7 +111,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
                 }
                 className="h-4 w-4 rounded border-gray-300"
               />
-              <span className="text-sm text-gray-600">Ativa</span>
+              <span className="text-sm font-bold text-gray-600">Ativa</span>
             </label>
           </div>
 
