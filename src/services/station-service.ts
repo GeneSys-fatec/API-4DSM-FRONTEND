@@ -8,6 +8,10 @@ export interface Estacao {
   nome: string;
   codigo: string;
   cidade: string;
+  latitude: string;
+  longitude: string;
+  status: string;
+  isActive: boolean;
 }
 
 export interface StationApi {
@@ -37,17 +41,24 @@ export interface CreateStationInput {
 
 function getApiBaseUrl(): string {
   const fromEnv = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
-  const normalized = (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+  const normalized = (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(
+    /\/+$/,
+    "",
+  );
   return normalized;
 }
 
 function isAbortError(err: unknown): boolean {
-  return typeof err === "object" && err !== null && (err as any).name === "AbortError";
+  return (
+    typeof err === "object" &&
+    err !== null &&
+    (err as any).name === "AbortError"
+  );
 }
 
 async function fetchJson<T>(
   path: string,
-  init?: RequestInit & { signal?: AbortSignal }
+  init?: RequestInit & { signal?: AbortSignal },
 ): Promise<T> {
   const baseUrl = getApiBaseUrl();
   const response = await fetch(`${baseUrl}${path}`, init);
@@ -71,7 +82,9 @@ export function getEmptyCreateStationInput(): CreateStationInput {
   };
 }
 
-export function validateCreateStationInput(input: CreateStationInput): string | null {
+export function validateCreateStationInput(
+  input: CreateStationInput,
+): string | null {
   if (!input.name.trim() || !input.address.trim()) {
     return "Preencha pelo menos Nome e Endereço.";
   }
@@ -90,13 +103,19 @@ export function validateCreateStationInput(input: CreateStationInput): string | 
 export function mapStationApiToEstacaoModel(station: StationApi): Estacao {
   return {
     id: String(station.id),
-    nome: station.name,
-    codigo: station.idDatalogger,
-    cidade: station.address,
+    nome: station.name || "",
+    codigo: station.idDatalogger || "",
+    cidade: station.address || "",
+    latitude: station.latitude || "",
+    longitude: station.longitude || "",
+    status: station.status || "",
+    isActive: station.isActive ?? true,
   };
 }
 
-export function mapStationApiToCreateStationInput(station: StationApi): CreateStationInput {
+export function mapStationApiToCreateStationInput(
+  station: StationApi,
+): CreateStationInput {
   return {
     name: station.name ?? "",
     address: station.address ?? "",
@@ -110,7 +129,7 @@ export function mapStationApiToCreateStationInput(station: StationApi): CreateSt
 
 export async function getStationById(
   id: string,
-  options?: { signal?: AbortSignal }
+  options?: { signal?: AbortSignal },
 ): Promise<StationApi> {
   return fetchJson<StationApi>(`/stations/${id}`, {
     method: "GET",
@@ -119,7 +138,9 @@ export async function getStationById(
   });
 }
 
-export async function listStations(options?: { signal?: AbortSignal }): Promise<Estacao[]> {
+export async function listStations(options?: {
+  signal?: AbortSignal;
+}): Promise<Estacao[]> {
   const data = await fetchJson<StationApi[]>("/stations", {
     method: "GET",
     headers: { Accept: "application/json" },
@@ -128,7 +149,9 @@ export async function listStations(options?: { signal?: AbortSignal }): Promise<
   return data.map(mapStationApiToEstacaoModel);
 }
 
-export async function createStation(input: CreateStationInput): Promise<Estacao> {
+export async function createStation(
+  input: CreateStationInput,
+): Promise<Estacao> {
   const payload = {
     name: input.name,
     address: input.address,
@@ -150,7 +173,10 @@ export async function createStation(input: CreateStationInput): Promise<Estacao>
   return mapStationApiToEstacaoModel(created);
 }
 
-export async function updateStation(id: string, input: CreateStationInput): Promise<Estacao> {
+export async function updateStation(
+  id: string,
+  input: CreateStationInput,
+): Promise<Estacao> {
   const payload = {
     name: input.name,
     address: input.address,
@@ -209,7 +235,9 @@ export function useStationsList() {
 
 export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
   const [isOpen, setIsOpen] = useState(false);
-  const [form, setForm] = useState<CreateStationInput>(getEmptyCreateStationInput());
+  const [form, setForm] = useState<CreateStationInput>(
+    getEmptyCreateStationInput(),
+  );
   const [isCreating, setIsCreating] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -244,16 +272,27 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
         setIsCreating(false);
       }
     },
-    [form, onCreated]
+    [form, onCreated],
   );
 
-  return { isOpen, open, close, form, setForm, isCreating, errorMessage, submit, };
+  return {
+    isOpen,
+    open,
+    close,
+    form,
+    setForm,
+    isCreating,
+    errorMessage,
+    submit,
+  };
 }
 
 export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
   const [isOpen, setIsOpen] = useState(false);
   const [stationId, setStationId] = useState<string | null>(null);
-  const [form, setForm] = useState<CreateStationInput>(getEmptyCreateStationInput());
+  const [form, setForm] = useState<CreateStationInput>(
+    getEmptyCreateStationInput(),
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -306,7 +345,7 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
         setIsSaving(false);
       }
     },
-    [form, onUpdated, stationId]
+    [form, onUpdated, stationId],
   );
 
   return {
@@ -334,7 +373,14 @@ export function stationFilter(estacoes: Estacao[], termo: string): Estacao[] {
   });
 }
 
-export async function deleteStation(id: string, options?: {confirm?: boolean; confirmMessage?: string; stationName?: string; signal?: AbortSignal;}
+export async function deleteStation(
+  id: string,
+  options?: {
+    confirm?: boolean;
+    confirmMessage?: string;
+    stationName?: string;
+    signal?: AbortSignal;
+  },
 ): Promise<void> {
   const confirmDelete = options?.confirm !== false;
   if (confirmDelete && typeof window !== "undefined") {

@@ -1,7 +1,8 @@
 import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
-import type { ParametroClima, PeriodoTempo } from "../mocks/DashboardData";
 import { Loader2 } from "lucide-react";
+export type ParametroClima = "Temperatura" | "Umidade" | "Chuva" | "Ventos";
+export type PeriodoTempo = "24h" | "7d" | "30d";
 
 export interface OpenMeteoHourlyData {
   time: string[];
@@ -26,6 +27,7 @@ interface DashboardChartProps {
   periodo: PeriodoTempo;
   dadosHistoricos: OpenMeteoHourlyData | null;
 }
+
 export function DashboardChart({
   parametro,
   periodo,
@@ -156,7 +158,7 @@ export function DashboardChart({
 
   if (!dadosHistoricos) {
     return (
-      <div className="w-full h-full min-h-75 flex justify-center items-center text-gray-400">
+      <div className="w-full h-full min-h-[300px] flex justify-center items-center text-gray-400">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
@@ -165,7 +167,7 @@ export function DashboardChart({
   const { options, series } = getChartConfig();
 
   return (
-    <div className="w-full h-full min-h-75">
+    <div className="w-full h-full min-h-[300px]">
       <Chart options={options} series={series} type="area" height="100%" />
     </div>
   );
