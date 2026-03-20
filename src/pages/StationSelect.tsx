@@ -1,42 +1,40 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Search, MapPin } from "lucide-react";
 import { TableBase } from "../components/TableBody";
-import { stationFilter, type Estacao } from "../services/station-service";
-
-const mockEstacoes: Estacao[] = [
-  {
-    id: "SJC-01",
-    nome: "Estação SJC - Centro",
-    codigo: "#123-456ABC",
-    cidade: "São José dos Campos",
-  },
-  {
-    id: "SJC-02",
-    nome: "Estação SJC - Parque Industrial",
-    codigo: "#123-789DEF",
-    cidade: "São José dos Campos",
-  },
-  {
-    id: "JAC-01",
-    nome: "Estação Jacareí - Centro",
-    codigo: "#456-123GHI",
-    cidade: "Jacareí",
-  },
-  {
-    id: "TAU-01",
-    nome: "Estação Taubaté - Independência",
-    codigo: "#789-123JKL",
-    cidade: "Taubaté",
-  },
-];
+import { listStations, stationFilter, type Estacao } from "../services/station-service";
 
 export function StationSelect() {
   const navigate = useNavigate();
   const [termoBusca, setTermoBusca] = useState("");
+  const [estacoes, setEstacoes] = useState<Estacao[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    listStations({ signal: controller.signal })
+      .then((data) => {
+        setEstacoes(data);
+      })
+      .catch((err: unknown) => {
+        if ((err as any)?.name === "AbortError") return;
+        setErrorMessage("Não foi possível carregar as estações.");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
   const estacoesFiltradas = useMemo(() => {
-    return stationFilter(mockEstacoes, termoBusca);
-  }, [termoBusca]);
+    return stationFilter(estacoes, termoBusca);
+  }, [estacoes, termoBusca]);
 
   return (
     <div className="max-w-6xl mx-auto w-full p-4 md:p-8">
@@ -67,12 +65,16 @@ export function StationSelect() {
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        {estacoesFiltradas.length > 0 ? (
+        {isLoading ? (
+          <div className="p-8 md:p-12 text-sm text-gray-500">Carregando estações...</div>
+        ) : errorMessage ? (
+          <div className="p-8 md:p-12 text-sm text-red-500">{errorMessage}</div>
+        ) : estacoesFiltradas.length > 0 ? (
           <TableBase
             data={estacoesFiltradas}
             rowClassName="cursor-pointer hover:bg-[#e8f5e9]/50 group"
             onRowClick={(item) => navigate(`/admin/dashboard/${item.id}`)}
-            renderActions={() => (
+            renderActions={(_item) => (
               <span className="text-tecsus-green font-bold text-sm flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
                 Acessar Dashboard <ArrowRight size={16} />
               </span>
