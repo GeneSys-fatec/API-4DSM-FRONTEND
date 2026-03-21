@@ -104,41 +104,40 @@ export function StationManage() {
             <div className="p-8 text-sm text-red-500">{errorMessage}</div>
           ) : (
             <TableBase
-              data={estacoesFiltradas}
-              rowClassName="hover:bg-gray-50/50"
-              renderActions={(item) => (
-                <div className="flex justify-end gap-4">
-                  <button
-                    title="Configurar Limites"
-                    className="text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
-                  >
-                    <Settings2 size={18} />
-                  </button>
-                  <button
-                    title="Editar Estação"
-                    className="text-gray-500 hover:text-tecsus-green transition-colors focus:outline-none"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      void editModal.open(item.id);
-                    }}
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openDeleteModal(item);
-                    }}
-                    title="Excluir Estação"
-                    className="text-gray-500 hover:text-red-500 transition-colors focus:outline-none"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              )}
-            />
+                  data={estacoesFiltradas}
+                  rowClassName="hover:bg-gray-50/50"
+                  renderActions={(item) => (
+                    <div className="flex justify-end gap-4">
+                      <button
+                        title="Configurar Limites"
+                        className="text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
+                      >
+                        <Settings2 size={18} />
+                      </button>
+                      <button
+                        title="Editar Estação"
+                        className="text-gray-500 hover:text-tecsus-green transition-colors focus:outline-none"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          void editModal.open(item.id);
+                        } }
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openDeleteModal(item);
+                        } }
+                        title="Excluir Estação"
+                        className="text-gray-500 hover:text-red-500 transition-colors focus:outline-none"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  )} columns={[]}/>
           )}
         </div>
           

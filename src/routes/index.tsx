@@ -3,6 +3,7 @@ import { Layout } from "../components/Layout";
 import { Dashboard } from "../pages/Dashboard";
 import { StationSelect } from "../pages/StationSelect";
 import { StationManage } from "@/pages/StationManage";
+import { Parameters } from "../pages/Parameters";
 
 
 export function AppRoutes() {
@@ -15,6 +16,7 @@ export function AppRoutes() {
         <Route path="/admin/selecionar-estacao" element={<StationSelect />} />
         <Route path="/admin/dashboard/:id" element={<Dashboard />} />
         <Route path="/admin/gerenciar-estacoes" element={<StationManage />} /> 
+        <Route path="/admin/gerenciar-parametros" element={<Parameters/>} />
       </Route>
     </Routes>
   );
