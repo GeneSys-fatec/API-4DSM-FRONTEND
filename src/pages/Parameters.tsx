@@ -2,46 +2,18 @@ import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ParameterForm } from "@/components/forms/ParameterForm";
 import { TableBase } from "@/components/TableBody";
 import { Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { parameterService } from "@/services/parameter-service";
+import { toast } from "react-toastify";
 
 export interface Parameter {
-    id: string;
+    id: number;
     name: string;
     unit: string;
     factor: number;
     offset: number;
+    description?: string;
 }
-
-const mockParameters: Parameter[] = [
-    {
-        id: "01",
-        name: "Temperatura",
-        unit: "Celsius (°C)",
-        factor: 1,
-        offset: 0
-    },
-    {
-        id: "02",
-        name: "Umidade do ar",
-        unit: "Porcentagem (%)",
-        factor: 1,
-        offset: 0
-    },
-    {
-        id: "03",
-        name: "Pluviosidade",
-        unit: "Milímetro (mm)",
-        factor: 0.20,
-        offset: 0
-    },
-    {
-        id: "04",
-        name: "Pressão atmosférica",
-        unit: "Hectopascal (hPa)",
-        factor: 1,
-        offset: 1013.25
-    },
-];
 
 const columns = [
     {
@@ -70,9 +42,20 @@ const columns = [
 ];
 
 export function Parameters() {
+    const [parameters, setParameters] = useState<Parameter[]>([]);
     const [modalOpen, setModalOpen] = useState(false);
     const [editingParameter, setEditingParameter] = useState<Parameter | null>(null);
-    const [confirmDelectionOpen, setConfirmDelectionOpen] = useState(false);
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+    const [parameterToDelete, setParameterToDelete] = useState<Parameter | null>(null);
+
+    useEffect(() => {
+        loadParameters();
+    }, []);
+
+    const loadParameters = async () => {
+        const data = await parameterService.findAll();
+        setParameters(data);
+    };
 
     const openCreateModal = () => {
         setEditingParameter(null);
@@ -84,10 +67,34 @@ export function Parameters() {
         setModalOpen(true);
     };
 
+    const openDeleteModal = (parameter: Parameter) => {
+        setParameterToDelete(parameter);
+        setConfirmDeleteOpen(true);
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!parameterToDelete) return;
+
+        const success = await parameterService.delete(parameterToDelete.id);
+        if (success) {
+            toast.success("Parâmetro excluído com sucesso!");
+            await loadParameters();
+        } else {
+            toast.error("Não foi possível excluir o parâmetro.");
+        }
+        closeModal();
+    };
+
+    const handleFormSuccess = async () => {
+        await loadParameters();
+        closeModal();
+    };
+
     const closeModal = () => {
         setModalOpen(false);
-        setConfirmDelectionOpen(false);
+        setConfirmDeleteOpen(false);
         setEditingParameter(null);
+        setParameterToDelete(null);
     };
 
     return (
@@ -102,19 +109,19 @@ export function Parameters() {
                 </button>
             </div>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                {mockParameters.length > 0 ? (
+                {parameters.length > 0 ? (
                     <>
                         <TableBase
-                            data={mockParameters}
+                            data={parameters}
                             columns={columns}
                             rowClassName="hover:bg-[#e8f5e9]/50 group"
-                            getRowKey={(item) => item.id}
+                            getRowKey={(item) => item.id.toString()}
                             renderActions={(item) => (
                                 <div className="flex items-center justify-end gap-3">
                                     <button type="button" className="cursor-pointer" onClick={() => openEditModal(item)}>
                                         <Pencil className="text-gray-400 hover:text-tecsus-green w-4 h-4 md:w-5 md:h-5 shrink-0"></Pencil>
                                     </button>
-                                    <button type="button" className="cursor-pointer" onClick={() => setConfirmDelectionOpen(true)}>
+                                    <button type="button" className="cursor-pointer" onClick={() => openDeleteModal(item)}>
                                         <Trash2 className="text-gray-400 hover:text-tecsus-green w-4 h-4 md:w-5 md:h-5 shrink-0"></Trash2>
                                     </button>
                                 </div>
@@ -126,12 +133,8 @@ export function Parameters() {
                         </button>
                     </>
                 ) : (
-                    <div className="p-8 md:p-12 text-center flex flex-col items-center justify-center">
-                        <div className="w-12 h-12 text-gray-300 mb-4" />
-                        <h3 className="text-lg font-bold text-gray-900">
-                            Nenhum parâmetro encontrado
-                        </h3>
-                        <p className="text-gray-500 mt-1">Cadastre parâmetros para começar.</p>
+                    <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
+                        Nenhum parâmetro encontrado. Cadastre seu primeiro parâmetro!
                     </div>
                 )}
             </div>
@@ -141,17 +144,22 @@ export function Parameters() {
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
-                        <ParameterForm onClose={closeModal} mode={editingParameter ? "edit" : "create"} />
+                        <ParameterForm
+                            onClose={closeModal}
+                            mode={editingParameter ? "edit" : "create"}
+                            parameter={editingParameter || undefined}
+                            onSuccess={handleFormSuccess}
+                        />
                     </div>
                 </div>
             )}
-            {confirmDelectionOpen && (
+            {confirmDeleteOpen && (
                 <div
                     className="fixed inset-0 z-[80] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
-                        <ConfirmDelete onClose={closeModal} />
+                        <ConfirmDelete onClose={closeModal} onConfirm={handleDeleteConfirm} />
                     </div>
                 </div>
             )

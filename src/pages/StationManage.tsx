@@ -19,6 +19,7 @@ import {
   useEditStationModal,
   useStationsList,
 } from "../services/station-service";
+import { toast } from "react-toastify";
 
 export function StationManage() {
   const [termoBusca, setTermoBusca] = useState("");
@@ -61,8 +62,10 @@ export function StationManage() {
       });
       await reload();
       setDeleteTarget(null);
+      toast.success("Estação excluída com sucesso!");
     } catch {
       setDeleteErrorMessage("Não foi possível excluir a estação.");
+      toast.error("Não foi possível excluir a estação.");
     } finally {
       setIsDeleting(false);
     }

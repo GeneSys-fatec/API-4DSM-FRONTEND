@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { toast } from "react-toastify";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3333";
 
@@ -264,10 +265,12 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
       setIsCreating(true);
       try {
         await createStation(form);
+        toast.success("Estação cadastrada com sucesso!");
         await onCreated?.();
         setIsOpen(false);
       } catch {
         setErrorMessage("Não foi possível cadastrar a estação.");
+        toast.error("Não foi possível cadastrar a estação.");
       } finally {
         setIsCreating(false);
       }
@@ -336,11 +339,13 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
       setIsSaving(true);
       try {
         await updateStation(stationId, form);
+        toast.success("Estação atualizada com sucesso!");
         await onUpdated?.();
         setIsOpen(false);
         setStationId(null);
       } catch {
         setErrorMessage("Não foi possível atualizar a estação.");
+        toast.error("Não foi possível atualizar a estação.");
       } finally {
         setIsSaving(false);
       }
