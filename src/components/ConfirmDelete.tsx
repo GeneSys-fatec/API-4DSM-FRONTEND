@@ -2,10 +2,10 @@ import { TriangleAlert } from "lucide-react";
 
 interface ConfirmDeleteProps {
     onClose: () => void;
-    // onConfirm: () => void;
+    onConfirm: () => void | Promise<void>;
 }
 
-export function ConfirmDelete({ onClose }: ConfirmDeleteProps) {
+export function ConfirmDelete({ onClose, onConfirm }: ConfirmDeleteProps) {
     return (
         <div className="flex flex-col justify-center items-center max-w-md rounded-xl bg-white p-6 md:p-8 shadow-xl border border-gray-100">
             <div className="mb-5 flex flex-col items-center gap-4">
@@ -30,8 +30,9 @@ export function ConfirmDelete({ onClose }: ConfirmDeleteProps) {
                     Cancelar
                 </button>
                 <button
+                    type="button"
                     className="bg-red-600 text-white font-semibold text-sm p-2 gap-2 hover:opacity-80 cursor-pointer rounded-md"
-                    // onClick={onConfirm}
+                    onClick={onConfirm}
                     >
                     Excluir
                 </button>
