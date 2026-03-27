@@ -10,9 +10,14 @@ interface ParameterFormProps {
     onSuccess?: () => void;
 }
 
+const KEY_MAX_LENGTH = 6;
+const KEY_REGEX = /^[A-Za-z0-9]+$/;
+
 export function ParameterForm({ onClose, mode, parameter, onSuccess }: ParameterFormProps) {
     const isEditMode = mode === "edit";
+    const [keyError, setKeyError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
+        key: parameter?.key || "",
         name: parameter?.name || "",
         unit: parameter?.unit || "",
         factor: parameter?.factor || 0,
@@ -20,8 +25,32 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
         description: parameter?.description || "",
     });
 
+    const getKeyValidationError = (keyValue: string) => {
+        const trimmedKey = keyValue.trim();
+
+        if (!trimmedKey) {
+            return "A key do parâmetro é obrigatória.";
+        }
+
+        if (trimmedKey.length > KEY_MAX_LENGTH) {
+            return "A key deve ter no máximo 6 caracteres.";
+        }
+
+        if (!KEY_REGEX.test(trimmedKey)) {
+            return "A key deve conter apenas letras e números.";
+        }
+
+        return null;
+    };
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value, type } = e.target;
+
+        if (name === "key") {
+            const validationError = getKeyValidationError(value);
+            setKeyError(validationError);
+        }
+
         setFormData(prev => ({
             ...prev,
             [name]: type === "number" ? parseFloat(value) : value,
@@ -30,6 +59,13 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const keyValidationError = getKeyValidationError(formData.key);
+        if (keyValidationError) {
+            setKeyError(keyValidationError);
+            toast.error(keyValidationError);
+            return;
+        }
 
         try {
             let result;
@@ -78,6 +114,27 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
                         value={formData.name}
                         onChange={handleInputChange}
                     />
+                </div>
+                <div className="flex flex-col gap-1">
+                    <div className="relative border-2 rounded-md px-3 py-2 border-gray-400 focus-within:border-tecsus-green">
+                    <label className="absolute -top-2 left-2 bg-white px-1 text-xs">
+                        Key <span className="text-gray-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        name="key"
+                        className="w-full outline-none text-xs"
+                        required
+                        maxLength={KEY_MAX_LENGTH}
+                        pattern="[A-Za-z0-9]+"
+                        title="Use apenas letras e números (máximo de 6 caracteres)."
+                        value={formData.key}
+                        onChange={handleInputChange}
+                        onBlur={(event) => setKeyError(getKeyValidationError(event.target.value))}
+                    />
+                </div>
+                    {keyError && <p className="text-xs text-red-600">{keyError}</p>}
+                    <p className="text-xs text-gray-600">Identificador do parâmetro. Use uma sigla única com no máximo 6 caracteres (letras e números), por exemplo: TEMP, UMID, PRESS.</p>
                 </div>
                 <div className="relative border-2 rounded-md px-3 py-2 border-gray-400 focus-within:border-tecsus-green">
                     <label className="absolute -top-2 left-2 bg-white px-1 text-xs">
@@ -132,14 +189,14 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
                     />
                 </div>
                 <div className="flex self-end gap-2">
-                    <button 
+                    <button
                         type="button"
                         className="bg-gray-400 font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={onClose}
                     >
                         Cancelar
                     </button>
-                    <button 
+                    <button
                         type="submit"
                         className="bg-tecsus-green text-white font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                     >

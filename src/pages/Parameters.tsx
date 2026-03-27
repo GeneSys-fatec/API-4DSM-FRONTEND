@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 
 export interface Parameter {
     id: number;
+    key: string;
     name: string;
     unit: string;
     factor: number;
@@ -21,6 +22,11 @@ const columns = [
         header: "Parâmetro",
         tdClassName: "font-semibold text-gray-900",
         render: (item: Parameter) => item.name,
+    },
+    {
+        key: "key",
+        header: "Key",
+        render: (item: Parameter) => item.key,
     },
     {
         key: "unit",
