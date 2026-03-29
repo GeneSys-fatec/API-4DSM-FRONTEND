@@ -2,7 +2,7 @@ const API_URL = 'http://localhost:3333';
 
 export interface Parameter {
     id: number;
-    key: string;
+    json_key: string;
     name: string;
     unit: string;
     factor: number;
@@ -11,7 +11,7 @@ export interface Parameter {
 }
 
 export interface CreateParameterPayload {
-    key: string;
+    json_key: string;
     name: string;
     unit: string;
     factor: number;

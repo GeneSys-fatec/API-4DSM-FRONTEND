@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "react-toastify";
 import { useCreateStationModal } from "../services/station-service";
+import { stationParameterService } from "../services/station-parameter-service";
 import { StationBasicForm } from "./forms/StationBasicForm";
 import { ParameterSelectionForm } from "./forms/ParameterSelectionForm";
 
@@ -8,6 +10,8 @@ type CreateStationModalState = ReturnType<typeof useCreateStationModal>;
 
 export function CreateStationModal({ modal }: { modal: CreateStationModalState }) {
   const [activeTab, setActiveTab] = useState<"station" | "parameters">("station");
+  
+  
   const [selectedParams, setSelectedParams] = useState<number[]>([]);
 
   const handleClose = () => {
@@ -16,10 +20,37 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
     setSelectedParams([]);
   };
 
-  const toggleParam = (id: number) => {
-    setSelectedParams((prev) =>
-      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]
+  const toggleParam = (idTypeParam: number) => {
+    setSelectedParams((prev) => 
+      prev.includes(idTypeParam)
+        ? prev.filter((id) => id !== idTypeParam)
+        : [...prev, idTypeParam]
     );
+  };
+  const handleSubmeterCadastro = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const createdStation = await modal.submit(e as unknown as React.FormEvent<HTMLFormElement>);
+      
+      if (createdStation && createdStation.id) {
+        for (const idTypeParam of selectedParams) {
+          await stationParameterService.create({
+            idStation: Number(createdStation.id),
+            idTypeParam: idTypeParam, 
+            isActive: true
+          });
+        }
+
+        console.log("Estação criada com sucesso:", createdStation);
+        
+        toast.success("Estação e parâmetros cadastrados com sucesso!");
+        handleClose();
+      }
+    } catch (error) {
+        console.error("A estação foi criada, mas os parâmetros falharam:", error);
+        toast.error("Estação criada, mas houve um erro ao atrelar os sensores.");
+    }
   };
 
   if (!modal.isOpen) return null;
@@ -33,8 +64,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
       />
 
       <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
-        {/* HEADER */}
-        <div className="px-6 py-4 border-b border-gray-100 flex-shrink-0">
+        <div className="px-6 py-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Cadastrar Nova Estação</h2>
@@ -74,7 +104,6 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           </div>
         </div>
 
-        {/* BODY */}
         <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
           {modal.errorMessage && (
             <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
@@ -82,19 +111,21 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
             </div>
           )}
 
-          <form id="station-form" onSubmit={(e) => e.preventDefault()}>
-            {/* AQUI ESTÁ A MÁGICA DOS COMPONENTES SEPARADOS */}
+          <div id="station-form" className="flex flex-col">
             {activeTab === "station" && (
               <StationBasicForm form={modal.form} setForm={modal.setForm} />
             )}
             {activeTab === "parameters" && (
-              <ParameterSelectionForm selectedParams={selectedParams} toggleParam={toggleParam} />
+              <ParameterSelectionForm 
+                selectedParams={selectedParams} 
+                toggleParam={toggleParam}
+                isCreatingStation={true}
+              />
             )}
-          </form>
+          </div>
         </div>
 
-        {/* FOOTER */}
-        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between flex-shrink-0 rounded-b-2xl">
+        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex items-center justify-between shrink-0 rounded-b-2xl">
           <button
             type="button"
             onClick={handleClose}
@@ -115,10 +146,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           ) : (
             <button
               type="button"
-              onClick={(e) => {
-                console.log("Submit com os parâmetros:", selectedParams);
-                modal.submit(e as any);
-              }}
+              onClick={handleSubmeterCadastro}
               disabled={modal.isCreating}
               className="px-6 py-2 bg-tecsus-green text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50"
             >

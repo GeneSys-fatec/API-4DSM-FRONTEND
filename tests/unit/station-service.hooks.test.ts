@@ -29,35 +29,27 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
   });
 
   it("Fluxo 1: Administrador abre modal de cadastro com formulário vazio", () => {
-    // Arrange - Critério: "O administrador deve conseguir cadastrar uma estação"
     const { result } = renderHook(() => useCreateStationModal());
-
-    // Act
     act(() => result.current.open());
 
-    // Assert
     expect(result.current.isOpen).toBe(true);
     expect(result.current.form).toEqual(getEmptyCreateStationInput());
     expect(result.current.errorMessage).toBeNull();
   });
 
   it("Fluxo 1: Modal de cadastro valida campos obrigatórios antes de enviar", async () => {
-    // Arrange - Critério: "Implementar validação de campos obrigatórios no formulário"
     const { result } = renderHook(() => useCreateStationModal());
     act(() => result.current.open());
 
-    // Act
     await act(async () => {
       await result.current.submit(makeFakeFormEvent());
     });
 
-    // Assert
     expect(result.current.errorMessage).toMatch(/Preencha pelo menos/);
     expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
-  it("Fluxo 1: Administrador cadastra estação com sucesso e modal fecha", async () => {
-    // Arrange - Critério: "O administrador deve conseguir cadastrar uma estação"
+  it("Fluxo 1: Administrador cadastra estação e o hook devolve a entidade", async () => {
     mockFetchJsonOnce({
       id: 1,
       name: "Estação Meteorológica Sul",
@@ -73,8 +65,7 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       updatedBy: "",
     });
 
-    const onCreated = vi.fn();
-    const { result } = renderHook(() => useCreateStationModal(onCreated));
+    const { result } = renderHook(() => useCreateStationModal());
     act(() => result.current.open());
 
     act(() => {
@@ -89,20 +80,18 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       });
     });
 
-    // Act
+    let createdStation;
     await act(async () => {
-      await result.current.submit(makeFakeFormEvent());
+      createdStation = await result.current.submit(makeFakeFormEvent());
     });
 
-    // Assert
     expect(globalThis.fetch).toHaveBeenCalledOnce();
-    expect(onCreated).toHaveBeenCalledOnce();
-    expect(result.current.isOpen).toBe(false);
+    expect(createdStation).toBeDefined();
+    expect(createdStation?.nome).toBe("Estação Meteorológica Sul");
     expect(result.current.errorMessage).toBeNull();
   });
 
   it("Fluxo 2: Administrador lista todas as estações cadastradas ao abrir página", async () => {
-    // Arrange - Critério: "Todas as estações cadastradas devem ser listadas"
     mockFetchJsonOnce([
       {
         id: 1,
@@ -120,10 +109,8 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       },
     ]);
 
-    // Act
     const { result } = renderHook(() => useStationsList());
 
-    // Assert
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
@@ -133,13 +120,10 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
   });
 
   it("Fluxo 2: Sistema exibe mensagem de erro se carregamento de estações falhar", async () => {
-    // Arrange - Critério: "Hub de Tratamento de Erro"
     mockFetchJsonOnce({ message: "Erro no servidor" }, { ok: false, status: 500 });
 
-    // Act
     const { result } = renderHook(() => useStationsList());
 
-    // Assert
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
     });
@@ -147,7 +131,6 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
   });
 
   it("Fluxo 3: Administrador abre modal de edição e carrega dados da estação", async () => {
-    // Arrange - Critério: "O sistema deve permitir editar e remover estações"
     mockFetchJsonOnce({
       id: 9,
       name: "Estação Nordeste",
@@ -165,12 +148,10 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
 
     const { result } = renderHook(() => useEditStationModal());
 
-    // Act
     await act(async () => {
       await result.current.open("9");
     });
 
-    // Assert
     expect(result.current.isOpen).toBe(true);
     expect(result.current.stationId).toBe("9");
     await waitFor(() => {
@@ -181,8 +162,6 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
   });
 
   it("Fluxo 3: Administrador edita estação e salva alterações com sucesso", async () => {
-    // Arrange - Critério: "O sistema deve permitir editar e remover estações"
-    // 1) GET /stations/:id
     mockFetchJsonOnce({
       id: 9,
       name: "Estação Nordeste",
@@ -192,13 +171,8 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       idDatalogger: "DL-009",
       status: "Ativa",
       isActive: true,
-      createdAt: "",
-      updatedAt: "",
-      createdBy: "",
-      updatedBy: "",
     });
 
-    // 2) PUT /stations/update/:id
     mockFetchJsonOnce({
       id: 9,
       name: "Estação Nordeste Atualizada",
@@ -208,14 +182,9 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       idDatalogger: "DL-009",
       status: "Ativa",
       isActive: true,
-      createdAt: "",
-      updatedAt: "",
-      createdBy: "",
-      updatedBy: "",
     });
 
-    const onUpdated = vi.fn();
-    const { result } = renderHook(() => useEditStationModal(onUpdated));
+    const { result } = renderHook(() => useEditStationModal());
 
     await act(async () => {
       await result.current.open("9");
@@ -228,15 +197,14 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
       });
     });
 
-    // Act
+    let updatedStation;
     await act(async () => {
-      await result.current.submit(makeFakeFormEvent());
+      updatedStation = await result.current.submit(makeFakeFormEvent());
     });
 
-    // Assert
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
-    expect(onUpdated).toHaveBeenCalledOnce();
-    expect(result.current.isOpen).toBe(false);
+    expect(updatedStation).toBeDefined();
+    expect(updatedStation?.nome).toBe("Estação Nordeste Atualizada");
     expect(result.current.errorMessage).toBeNull();
   });
 });
