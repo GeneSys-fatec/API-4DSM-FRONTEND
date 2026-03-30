@@ -14,7 +14,7 @@ import { EditStationModal } from "../components/EditStationModal";
 import {
   deleteStation,
   stationFilter,
-  type Estacao,
+  type Station,
   useCreateStationModal,
   useEditStationModal,
   useStationsList,
@@ -32,13 +32,13 @@ export function StationManage() {
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
 
-  const [deleteTarget, setDeleteTarget] = useState<Estacao | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Station | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
     null,
   );
 
-  const openDeleteModal = (station: Estacao) => {
+  const openDeleteModal = (station: Station) => {
     setDeleteErrorMessage(null);
     setDeleteTarget(station);
   };
@@ -75,7 +75,7 @@ export function StationManage() {
     return stationFilter(estacoes, termoBusca);
   }, [estacoes, termoBusca]);
 
-  const colunasDaTabela: TableColumn<Estacao>[] = [
+  const colunasDaTabela: TableColumn<Station>[] = [
     {
       key: "nome",
       header: "NOME",

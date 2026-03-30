@@ -2,13 +2,13 @@ import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { ParameterForm } from "@/components/forms/ParameterForm";
 import { TableBase } from "@/components/TableBody";
 import { Pencil, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { parameterService } from "@/services/parameter-service";
 import { toast } from "react-toastify";
 
 export interface Parameter {
     id: number;
-    key: string;
+    json_key: string;
     name: string;
     unit: string;
     factor: number;
@@ -26,7 +26,7 @@ const columns = [
     {
         key: "key",
         header: "Key",
-        render: (item: Parameter) => item.key,
+        render: (item: Parameter) => item.json_key,
     },
     {
         key: "unit",
@@ -54,14 +54,26 @@ export function Parameters() {
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
     const [parameterToDelete, setParameterToDelete] = useState<Parameter | null>(null);
 
-    useEffect(() => {
-        loadParameters();
-    }, []);
-
-    const loadParameters = async () => {
+    
+    const loadParameters = useCallback(async () => {
         const data = await parameterService.findAll();
         setParameters(data);
-    };
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true; 
+
+        const fetchParams = async () => {
+            const data = await parameterService.findAll();
+            if (isMounted) setParameters(data);
+        };
+
+        fetchParams();
+
+        return () => {
+            isMounted = false; 
+        };
+    }, []);
 
     const openCreateModal = () => {
         setEditingParameter(null);
@@ -146,7 +158,8 @@ export function Parameters() {
             </div>
             {modalOpen && (
                 <div
-                    className="fixed inset-0 z-[80] bg-black/40 flex items-center justify-center p-4"
+                    
+                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
@@ -161,7 +174,8 @@ export function Parameters() {
             )}
             {confirmDeleteOpen && (
                 <div
-                    className="fixed inset-0 z-[80] bg-black/40 flex items-center justify-center p-4"
+                    
+                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>

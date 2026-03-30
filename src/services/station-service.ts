@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 const DEFAULT_API_BASE_URL = "http://localhost:3333";
 
-export interface Estacao {
+export interface Station {
   id: string;
   nome: string;
   codigo: string;
@@ -101,7 +101,7 @@ export function validateCreateStationInput(
   return null;
 }
 
-export function mapStationApiToEstacaoModel(station: StationApi): Estacao {
+export function mapStationApiToEstacaoModel(station: StationApi): Station {
   return {
     id: String(station.id),
     nome: station.name || "",
@@ -141,7 +141,7 @@ export async function getStationById(
 
 export async function listStations(options?: {
   signal?: AbortSignal;
-}): Promise<Estacao[]> {
+}): Promise<Station[]> {
   const data = await fetchJson<StationApi[]>("/stations", {
     method: "GET",
     headers: { Accept: "application/json" },
@@ -152,7 +152,7 @@ export async function listStations(options?: {
 
 export async function createStation(
   input: CreateStationInput,
-): Promise<Estacao> {
+): Promise<Station> {
   const payload = {
     name: input.name,
     address: input.address,
@@ -177,7 +177,7 @@ export async function createStation(
 export async function updateStation(
   id: string,
   input: CreateStationInput,
-): Promise<Estacao> {
+): Promise<Station> {
   const payload = {
     name: input.name,
     address: input.address,
@@ -201,7 +201,7 @@ export async function updateStation(
 }
 
 export function useStationsList() {
-  const [stations, setStations] = useState<Estacao[]>([]);
+  const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -264,10 +264,8 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
 
       setIsCreating(true);
       try {
-        await createStation(form);
-        toast.success("Estação cadastrada com sucesso!");
-        await onCreated?.();
-        setIsOpen(false);
+        const created = await createStation(form);
+        return created;
       } catch {
         setErrorMessage("Não foi possível cadastrar a estação.");
         toast.error("Não foi possível cadastrar a estação.");
@@ -338,11 +336,8 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
 
       setIsSaving(true);
       try {
-        await updateStation(stationId, form);
-        toast.success("Estação atualizada com sucesso!");
-        await onUpdated?.();
-        setIsOpen(false);
-        setStationId(null);
+        const updated = await updateStation(stationId, form);
+        return updated;
       } catch {
         setErrorMessage("Não foi possível atualizar a estação.");
         toast.error("Não foi possível atualizar a estação.");
@@ -367,7 +362,7 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
   };
 }
 
-export function stationFilter(estacoes: Estacao[], termo: string): Estacao[] {
+export function stationFilter(estacoes: Station[], termo: string): Station[] {
   const termoNormalizado = termo.trim().toLowerCase();
   if (!termoNormalizado) return estacoes;
 
