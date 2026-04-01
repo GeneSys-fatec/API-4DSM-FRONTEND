@@ -20,6 +20,7 @@ import {
   useStationsList,
 } from "../services/station-service";
 import { toast } from "react-toastify";
+import { ParameterByStation } from "@/components/ParameterByStation";
 
 export function StationManage() {
   const [termoBusca, setTermoBusca] = useState("");
@@ -31,6 +32,7 @@ export function StationManage() {
   } = useStationsList();
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
+  const [limitsTarget, setLimitsTarget] = useState<Station | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Station | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -41,6 +43,14 @@ export function StationManage() {
   const openDeleteModal = (station: Station) => {
     setDeleteErrorMessage(null);
     setDeleteTarget(station);
+  };
+
+  const openLimitsModal = (station: Station) => {
+    setLimitsTarget(station);
+  };
+
+  const closeLimitsModal = () => {
+    setLimitsTarget(null);
   };
 
   const closeDeleteModal = () => {
@@ -104,11 +114,10 @@ export function StationManage() {
       header: "STATUS",
       render: (item) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${
-            item.isActive
+          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${item.isActive
               ? "bg-tecsus-green/10 text-tecsus-green"
               : "bg-red-100 text-red-600"
-          }`}
+            }`}
         >
           {item.isActive ? "ATIVO" : "INATIVO"}
         </span>
@@ -177,8 +186,13 @@ export function StationManage() {
               renderActions={(item) => (
                 <div className="flex justify-end gap-4">
                   <button
-                    title="Configurar Limites"
+                    title="Visualizar Parâmetros"
                     className="text-gray-400 hover:text-blue-600 transition-colors focus:outline-none"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openLimitsModal(item);
+                    }}
                   >
                     <Settings2 size={18} />
                   </button>
@@ -213,6 +227,23 @@ export function StationManage() {
 
       <CreateStationModal modal={createModal} />
       <EditStationModal modal={editModal} />
+      {limitsTarget && (
+        <div
+          className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+          onClick={closeLimitsModal}
+        >
+          <div
+            className="w-full max-w-[96vw] md:max-w-5xl max-h-[90vh] mx-auto"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ParameterByStation
+              onClose={closeLimitsModal}
+              stationId={Number(limitsTarget.id)}
+              onSuccess={closeLimitsModal}
+            />
+          </div>
+        </div>
+      )}
       <DeleteStationModal
         isOpen={Boolean(deleteTarget)}
         stationName={deleteTarget?.nome}
