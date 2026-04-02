@@ -3,7 +3,6 @@ import {
   LayoutDashboard,
   Wifi,
   AlertCircle,
-  Siren,
   Users,
   HelpCircle,
   LogOut,
@@ -24,7 +23,6 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     },
     { to: "/admin/gerenciar-estacoes", icon: Wifi, label: "Gerenciar Estações" },
     { to: "/admin/gerenciar-parametros", icon: AlertCircle, label: "Gerenciar Parâmetros" },
-    { to: "/admin/gerenciar-alertas", icon: Siren, label: "Gerenciar Alertas" },
     { to: "/admin/cadastrar", icon: Users, label: "Cadastrar Administrador" },
   ];
 
