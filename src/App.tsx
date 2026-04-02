@@ -1,10 +1,13 @@
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes';
+import { AlertNotificationsProvider } from './context/alert-notifications-context';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <AlertNotificationsProvider>
+        <AppRoutes />
+      </AlertNotificationsProvider>
     </BrowserRouter>
   );
 }

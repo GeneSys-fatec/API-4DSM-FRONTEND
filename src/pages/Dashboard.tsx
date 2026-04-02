@@ -9,11 +9,13 @@ import {
   Activity,
   Loader2,
 } from "lucide-react";
+import { toast } from "react-toastify";
 import { WeatherCard } from "../components/WeatherCard";
 import { DashboardChart, type PeriodoTempo } from "../components/DashboardChart";
-import { fetchWeatherForStation } from "../services/weather-service";
+import { fetchWeatherForStation, type WeatherData } from "../services/weather-service";
 import { parameterService, type Parameter } from "../services/parameter-service";
 import { stationParameterService } from "../services/station-parameter-service";
+import { useAlertNotifications } from "../context/alert-notifications-context";
 
 
 const getIconForParameter = (jsonKey: string) => {
@@ -27,53 +29,100 @@ const getIconForParameter = (jsonKey: string) => {
 export function Dashboard() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { registerGeneratedAlerts } = useAlertNotifications();
 
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
   
-  const [weatherData, setWeatherData] = useState<any>(null);
+  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadDashboardData = async () => {
-      setIsLoading(true);
-      setError(null);
-      const stationId = id ? parseInt(id) : 1;
+    let isMounted = true;
+    const stationId = id ? Number.parseInt(id, 10) : 1;
+
+    const notifyGeneratedAlerts = (wData: WeatherData | null) => {
+      if (!wData?.generatedAlerts?.length) {
+        return;
+      }
+
+      const newAlerts = registerGeneratedAlerts(stationId, wData.generatedAlerts);
+      if (newAlerts.length === 0) {
+        return;
+      }
+
+      if (newAlerts.length === 1) {
+        toast.warn(newAlerts[0].description, {
+          toastId: `alert-${stationId}-${newAlerts[0].id}-${newAlerts[0].occurredAt}`,
+        });
+        return;
+      }
+
+      toast.warn(
+        `${newAlerts.length} novos alertas automáticos para a estação ${stationId}.`,
+        {
+          toastId: `alert-batch-${stationId}-${newAlerts[0].occurredAt}`,
+        },
+      );
+    };
+
+    const loadDashboardData = async (backgroundRefresh = false) => {
+      if (!backgroundRefresh) {
+        setIsLoading(true);
+        setError(null);
+      }
 
       try {
         const [wData, allParams, stationLinks] = await Promise.all([
           fetchWeatherForStation(stationId),
           parameterService.findAll(),
-          stationParameterService.findByStation(stationId)
+          stationParameterService.findByStation(stationId),
         ]);
 
+        if (!isMounted) return;
+
         const activeParams = stationLinks
-          .map(link => allParams.find(p => p.id === link.idTypeParam))
+          .map((link) => allParams.find((p) => p.id === link.idTypeParam))
           .filter((p): p is Parameter => p !== undefined);
 
         setStationParams(activeParams);
         setWeatherData(wData);
+        notifyGeneratedAlerts(wData);
 
-        
         if (activeParams.length > 0) {
-          setParametroAtivo(activeParams[0]);
+          setParametroAtivo((current) => {
+            if (!current) return activeParams[0];
+            return activeParams.find((item) => item.id === current.id) ?? activeParams[0];
+          });
         }
 
-        if (!wData) {
-            setError("Não foi possível carregar os dados climáticos desta estação no OpenMeteo.");
+        if (!wData && !backgroundRefresh) {
+          setError("Não foi possível carregar os dados climáticos desta estação no OpenMeteo.");
         }
-
       } catch (err) {
         console.error(err);
-        setError("Erro ao carregar a estrutura do Dashboard.");
+        if (!backgroundRefresh) {
+          setError("Erro ao carregar a estrutura do Dashboard.");
+        }
+      } finally {
+        if (!backgroundRefresh && isMounted) {
+          setIsLoading(false);
+        }
       }
-      setIsLoading(false);
     };
 
-    loadDashboardData();
-  }, [id]);
+    void loadDashboardData();
+    const intervalId = window.setInterval(() => {
+      void loadDashboardData(true);
+    }, 60_000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
+    };
+  }, [id, registerGeneratedAlerts]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";

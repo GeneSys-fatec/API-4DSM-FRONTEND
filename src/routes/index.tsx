@@ -4,6 +4,7 @@ import { Dashboard } from "../pages/Dashboard";
 import { StationSelect } from "../pages/StationSelect";
 import { Parameters } from "../pages/Parameters";
 import { StationManage } from "@/pages/StationManage";
+import { Alerts } from "../pages/Alerts";
 
 
 export function AppRoutes() {
@@ -16,7 +17,8 @@ export function AppRoutes() {
         <Route path="/admin/selecionar-estacao" element={<StationSelect />} />
         <Route path="/admin/dashboard/:id" element={<Dashboard />} />
         <Route path="/admin/gerenciar-parametros" element={<Parameters/>} />
-        <Route path="/admin/gerenciar-estacoes" element={<StationManage />} /> 
+        <Route path="/admin/gerenciar-estacoes" element={<StationManage />} />
+        <Route path="/admin/gerenciar-alertas" element={<Alerts />} />
       </Route>
     </Routes>
   );
