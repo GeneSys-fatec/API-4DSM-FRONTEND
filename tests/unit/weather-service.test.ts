@@ -5,6 +5,7 @@ describe('Weather Service (Frontend)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     globalThis.fetch = vi.fn();
+    window.localStorage.clear();
   });
 
   it('deve buscar o clima da estação com sucesso', async () => {
@@ -22,7 +23,13 @@ describe('Weather Service (Frontend)', () => {
     expect(globalThis.fetch).toHaveBeenCalledOnce();
     const [url] = (globalThis.fetch as any).mock.calls[0];
     expect(String(url)).toContain('/weather/5');
-    expect(result).toEqual(mockData);
+    expect(result).toEqual({
+      current: { temperature_2m: 25 },
+      hourly: {},
+      units: {},
+      generatedAlerts: [],
+      generatedCount: 0,
+    });
   });
 
   it('deve retornar null em caso de erro na requisição (ex: 400 ou 500)', async () => {
@@ -36,5 +43,18 @@ describe('Weather Service (Frontend)', () => {
 
     // Assert
     expect(result).toBeNull();
+  });
+
+  it('deve enviar Authorization quando existir token salvo', async () => {
+    window.localStorage.setItem('token', 'abc123');
+    (globalThis.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ current: {}, hourly: {}, generatedAlerts: [] }),
+    });
+
+    await fetchWeatherForStation(8);
+
+    const [, init] = (globalThis.fetch as any).mock.calls[0];
+    expect(init.headers.Authorization).toBe('Bearer abc123');
   });
 });

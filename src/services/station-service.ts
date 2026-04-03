@@ -15,6 +15,8 @@ export interface Station {
   isActive: boolean;
 }
 
+export type Estacao = Station;
+
 export interface StationApi {
   id: number;
   name: string;
