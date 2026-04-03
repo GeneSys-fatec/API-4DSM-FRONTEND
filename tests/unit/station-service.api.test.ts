@@ -8,11 +8,22 @@ import {
   type StationApi,
 } from "../../src/services/station-service";
 
+type FetchMock = {
+  mockResolvedValueOnce(value: unknown): FetchMock;
+  mock: {
+    calls: Array<[RequestInfo | URL, RequestInit?]>;
+  };
+};
+
+function getFetchMock(): FetchMock {
+  return globalThis.fetch as unknown as FetchMock;
+}
+
 function mockFetchJsonOnce(data: unknown, init?: { ok?: boolean; status?: number }) {
   const ok = init?.ok ?? true;
   const status = init?.status ?? 200;
 
-  (globalThis.fetch as any as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+  getFetchMock().mockResolvedValueOnce({
     ok,
     status,
     json: async () => data,
@@ -50,9 +61,9 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
 
     // Assert
     expect(globalThis.fetch).toHaveBeenCalledOnce();
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/stations");
-    expect(init.method).toBe("GET");
+    expect(init?.method).toBe("GET");
     expect(data).toHaveLength(1);
     expect(data[0]).toMatchObject({
       id: "1",
@@ -91,9 +102,9 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
     });
 
     // Assert
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/stations/create");
-    expect(init.method).toBe("POST");
+    expect(init?.method).toBe("POST");
     expect(created).toMatchObject({
       id: "1",
       nome: "Estação Meteorológica Sul",
@@ -124,9 +135,9 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
     // Assert
     expect(station.id).toBe(7);
     expect(station.name).toBe("Estação Meteorológica Nordeste");
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/stations/7");
-    expect(init.method).toBe("GET");
+    expect(init?.method).toBe("GET");
   });
 
   it("Critério: O sistema deve permitir editar estações - deve atualizar estação via PUT", async () => {
@@ -158,15 +169,15 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
     });
 
     // Assert
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/stations/update/7");
-    expect(init.method).toBe("PUT");
+    expect(init?.method).toBe("PUT");
     expect(updated.nome).toBe("Estação Meteorológica Nordeste Atualizada");
   });
 
   it("Critério: O sistema deve permitir remover estações - deve executar DELETE quando confirmado", async () => {
     // Arrange
-    (globalThis.fetch as any as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    getFetchMock().mockResolvedValueOnce({
       ok: true,
       status: 204,
       json: async () => ({}),
@@ -176,9 +187,9 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
     await deleteStation("3", { confirm: false });
 
     // Assert
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/stations/delete/3");
-    expect(init.method).toBe("DELETE");
+    expect(init?.method).toBe("DELETE");
   });
 
   it("Critério: O sistema deve permitir remover estações - deve solicitar confirmação do usuário", async () => {

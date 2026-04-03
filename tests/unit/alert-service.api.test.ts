@@ -7,11 +7,22 @@ import {
   type AlertApi,
 } from "../../src/services/alert-service";
 
+type FetchMock = {
+  mockResolvedValueOnce(value: unknown): FetchMock;
+  mock: {
+    calls: Array<[RequestInfo | URL, RequestInit?]>;
+  };
+};
+
+function getFetchMock(): FetchMock {
+  return globalThis.fetch as unknown as FetchMock;
+}
+
 function mockFetchJsonOnce(data: unknown, init?: { ok?: boolean; status?: number }) {
   const ok = init?.ok ?? true;
   const status = init?.status ?? 200;
 
-  (globalThis.fetch as any as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+  getFetchMock().mockResolvedValueOnce({
     ok,
     status,
     json: async () => data,
@@ -41,9 +52,9 @@ describe("alert-service (api)", () => {
     const result = await listAlerts();
 
     expect(globalThis.fetch).toHaveBeenCalledOnce();
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/alerts");
-    expect(init.method).toBe("GET");
+    expect(init?.method).toBe("GET");
     expect(result).toHaveLength(1);
     expect(result[0]).toMatchObject({
       id: "1",
@@ -71,9 +82,9 @@ describe("alert-service (api)", () => {
       description: "Registro manual",
     });
 
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/alerts/create");
-    expect(init.method).toBe("POST");
+    expect(init?.method).toBe("POST");
     expect(created.id).toBe("3");
   });
 
@@ -93,9 +104,9 @@ describe("alert-service (api)", () => {
       status: "resolved",
     });
 
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/alerts/update/7");
-    expect(init.method).toBe("PUT");
+    expect(init?.method).toBe("PUT");
     expect(updated.status).toBe("resolved");
   });
 
@@ -104,8 +115,8 @@ describe("alert-service (api)", () => {
 
     await deleteAlert("9");
 
-    const [url, init] = (globalThis.fetch as any as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [url, init] = getFetchMock().mock.calls[0]!;
     expect(String(url)).toContain("/alerts/delete/9");
-    expect(init.method).toBe("DELETE");
+    expect(init?.method).toBe("DELETE");
   });
 });

@@ -7,6 +7,17 @@ import {
   useStationsList,
 } from "../../src/services/station-service";
 
+type FetchMock = {
+  mockResolvedValueOnce(value: unknown): FetchMock;
+  mock: {
+    calls: Array<[RequestInfo | URL, RequestInit?]>;
+  };
+};
+
+function getFetchMock(): FetchMock {
+  return globalThis.fetch as unknown as FetchMock;
+}
+
 function makeFakeFormEvent() {
   return { preventDefault: vi.fn() } as unknown as React.FormEvent<HTMLFormElement>;
 }
@@ -15,7 +26,7 @@ function mockFetchJsonOnce(data: unknown, init?: { ok?: boolean; status?: number
   const ok = init?.ok ?? true;
   const status = init?.status ?? 200;
 
-  (globalThis.fetch as any as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+  getFetchMock().mockResolvedValueOnce({
     ok,
     status,
     json: async () => data,
@@ -87,7 +98,7 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
 
     expect(globalThis.fetch).toHaveBeenCalledOnce();
     expect(createdStation).toBeDefined();
-    expect(createdStation?.nome).toBe("Estação Meteorológica Sul");
+    expect((createdStation as { nome?: string } | undefined)?.nome).toBe("Estação Meteorológica Sul");
     expect(result.current.errorMessage).toBeNull();
   });
 
@@ -204,7 +215,7 @@ describe("station-service (hooks) - Fluxo Completo: Cadastro, Edição, Listagem
 
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
     expect(updatedStation).toBeDefined();
-    expect(updatedStation?.nome).toBe("Estação Nordeste Atualizada");
+    expect((updatedStation as { nome?: string } | undefined)?.nome).toBe("Estação Nordeste Atualizada");
     expect(result.current.errorMessage).toBeNull();
   });
 });

@@ -2,47 +2,48 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Search, MapPin } from "lucide-react";
 import { TableBase } from "../components/TableBody";
-import { listStations, stationFilter, type Estacao } from "../services/station-service";
+import { listStations, stationFilter, type Station } from "../services/station-service";
+
+function isAbortError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "name" in error && (error as { name?: string }).name === "AbortError";
+}
 
 const columns = [
   {
     key: "nome",
     header: "Nome",
     tdClassName: "font-semibold text-gray-900",
-    render: (item: Estacao) => item.nome,
+    render: (item: Station) => item.nome,
   },
   {
     key: "cidade",
     header: "Cidade",
-    render: (item: Estacao) => item.cidade,
+    render: (item: Station) => item.cidade,
   },
   {
     key: "codigo",
     header: "Código",
     tdClassName: "font-mono",
-    render: (item: Estacao) => item.codigo,
+    render: (item: Station) => item.codigo,
   },
 ];
 
 export function StationSelect() {
   const navigate = useNavigate();
   const [termoBusca, setTermoBusca] = useState("");
-  const [estacoes, setEstacoes] = useState<Estacao[]>([]);
+  const [estacoes, setEstacoes] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
 
-    setIsLoading(true);
-    setErrorMessage(null);
-
     listStations({ signal: controller.signal })
       .then((data) => {
         setEstacoes(data);
       })
       .catch((err: unknown) => {
-        if ((err as any)?.name === "AbortError") return;
+        if (isAbortError(err)) return;
         setErrorMessage("Não foi possível carregar as estações.");
       })
       .finally(() => {
@@ -96,7 +97,7 @@ export function StationSelect() {
             rowClassName="hover:bg-[#e8f5e9]/50 group"
             getRowKey={(item) => item.id}
             onRowClick={(item) => navigate(`/admin/dashboard/${item.id}`)}
-            renderActions={(_item) => (
+            renderActions={() => (
               <span className="text-tecsus-green font-bold text-sm flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
                 Acessar Dashboard <ArrowRight size={16} />
               </span>
