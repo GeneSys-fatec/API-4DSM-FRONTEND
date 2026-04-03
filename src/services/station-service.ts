@@ -43,7 +43,7 @@ export interface CreateStationInput {
 }
 
 function getApiBaseUrl(): string {
-  const fromEnv = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
+  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
   const normalized = (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(
     /\/+$/,
     "",
@@ -51,11 +51,12 @@ function getApiBaseUrl(): string {
   return normalized;
 }
 
-function isAbortError(err: unknown): boolean {
+function isAbortError(err: unknown): err is { name: string } {
   return (
     typeof err === "object" &&
     err !== null &&
-    (err as any).name === "AbortError"
+    "name" in err &&
+    (err as { name?: string }).name === "AbortError"
   );
 }
 
@@ -267,6 +268,7 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
       setIsCreating(true);
       try {
         const created = await createStation(form);
+        await onCreated?.();
         return created;
       } catch {
         setErrorMessage("Não foi possível cadastrar a estação.");
@@ -339,6 +341,7 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
       setIsSaving(true);
       try {
         const updated = await updateStation(stationId, form);
+        await onUpdated?.();
         return updated;
       } catch {
         setErrorMessage("Não foi possível atualizar a estação.");

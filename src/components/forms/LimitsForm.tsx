@@ -21,32 +21,59 @@ export function LimitsForm({ onClose, limit, onSuccess, fixedParameter, inline =
     });
 
     useEffect(() => {
-        if (limit) {
-            setResolvedLimit(limit);
-            setFormData({
-                idTypeParam: limit.idTypeParam,
-                minExpected: String(limit.minExpected),
-                maxExpected: String(limit.maxExpected),
-            });
-            return;
-        }
+        let cancelled = false;
 
-        if (fixedParameter) {
+        void Promise.resolve().then(() => {
+            if (cancelled) return;
+
+            if (limit) {
+                setResolvedLimit(limit);
+                setFormData({
+                    idTypeParam: limit.idTypeParam,
+                    minExpected: String(limit.minExpected),
+                    maxExpected: String(limit.maxExpected),
+                });
+                return;
+            }
+
+            if (fixedParameter) {
+                setResolvedLimit(null);
+                setFormData({
+                    idTypeParam: fixedParameter.id,
+                    minExpected: "0",
+                    maxExpected: "0",
+                });
+                return;
+            }
+
             setResolvedLimit(null);
             setFormData({
-                idTypeParam: fixedParameter.id,
+                idTypeParam: 0,
                 minExpected: "0",
                 maxExpected: "0",
             });
-        }
-    }, [limit, fixedParameter?.id]);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [limit, fixedParameter]);
 
     useEffect(() => {
         if (limit) return;
 
         if (!formData.idTypeParam) {
-            setResolvedLimit(null);
-            return;
+            let cancelled = false;
+
+            void Promise.resolve().then(() => {
+                if (!cancelled) {
+                    setResolvedLimit(null);
+                }
+            });
+
+            return () => {
+                cancelled = true;
+            };
         }
 
         let isMounted = true;

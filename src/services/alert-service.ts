@@ -32,7 +32,7 @@ export interface UpdateAlertPayload extends Partial<AlertPayload> {
 }
 
 function getApiBaseUrl(): string {
-  const fromEnv = (import.meta as any)?.env?.VITE_API_URL as string | undefined;
+  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
   return (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 }
 
