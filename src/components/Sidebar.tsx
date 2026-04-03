@@ -23,7 +23,7 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     },
     { to: "/admin/gerenciar-estacoes", icon: Wifi, label: "Gerenciar Estações" },
     { to: "/admin/gerenciar-parametros", icon: AlertCircle, label: "Gerenciar Parâmetros" },
-    { to: "/admin/cadastrar", icon: Users, label: "Cadastrar Administrador" },
+    { to: "/admin/gerenciar-administradores", icon: Users, label: "Cadastrar Administrador" },
   ];
 
   const bottomItems = [

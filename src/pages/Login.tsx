@@ -1,5 +1,4 @@
 import { LoginForm } from '../components/forms/LoginForm';
-import logoClimaSense from '../assets/logo.png';
 
 export function Login() {
   return (
@@ -10,13 +9,6 @@ export function Login() {
 
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-8 flex flex-col items-center relative z-10">
         
-        <div className="mb-4">
-          <img 
-            src={logoClimaSense} 
-            alt="ClimaSense Logo" 
-            className="w-32 h-auto object-contain"
-          />
-        </div>
 
         <h1 className="text-tecsus-green text-xl font-bold mb-6">
           Acesso Administrativo
@@ -25,7 +17,7 @@ export function Login() {
         <LoginForm />
 
         <div className="mt-8 text-center text-sm text-gray-500 font-medium">
-          © 2025 ClimaSense
+          © 2026 Tecsus
         </div>
       </div>
     </div>
