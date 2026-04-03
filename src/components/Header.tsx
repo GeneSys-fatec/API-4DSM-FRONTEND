@@ -95,7 +95,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           )}
         </button>
 
-        <div className="relative" ref={dropdownRef}>
+        {/* <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             className="p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -115,7 +115,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
               </button>
             </div>
           )}
-        </div>
+        </div> */}
         {isNotificationPanelOpen && (
           <div className="absolute top-[68px] right-4 md:right-8 w-[min(92vw,24rem)] rounded-xl bg-white text-gray-800 shadow-xl border border-gray-200 z-60">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
