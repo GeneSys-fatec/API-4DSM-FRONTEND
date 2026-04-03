@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import { Bell, CircleUser, Menu } from "lucide-react";
-import { useAlertNotifications } from "../context/alert-notifications-context";
+import { useState, useRef, useEffect } from "react";
+import { Bell, Menu } from "lucide-react";
+import { useAlertNotifications } from "../contexts/alert-notifications-context";
 
 interface HeaderProps {
   toggleMobileMenu: () => void;
@@ -9,6 +9,7 @@ interface HeaderProps {
 export function Header({ toggleMobileMenu }: HeaderProps) {
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const notificationPanelRef = useRef<HTMLDivElement | null>(null);
+  
   const {
     notifications,
     unseenCount,
@@ -82,7 +83,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
         </button>
 
         {isNotificationPanelOpen && (
-          <div className="absolute top-[68px] right-4 md:right-8 w-[min(92vw,24rem)] rounded-xl bg-white text-gray-800 shadow-xl border border-gray-200 z-60">
+          <div className="absolute top-[68px] right-4 md:right-8 w-[min(92vw,24rem)] rounded-xl bg-white text-gray-800 shadow-xl border border-gray-200 z-[60]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <h2 className="text-sm font-bold">Notificações</h2>
               <div className="flex items-center gap-3 text-xs">
@@ -126,13 +127,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
             </div>
           </div>
         )}
-
-        <button
-          className="p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-          aria-label="Perfil do Usuário"
-        >
-          <CircleUser className="w-6 h-6" />
-        </button>
       </div>
     </header>
   );

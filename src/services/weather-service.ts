@@ -1,4 +1,4 @@
-const DEFAULT_API_URL = "http://localhost:3333";
+import { apiFetch } from './api';
 
 export interface GeneratedAlertApi {
   id: number;
@@ -25,10 +25,6 @@ export interface WeatherData {
 
 export type WeatherResponse = WeatherData;
 
-function getApiBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
-  return (fromEnv?.trim() || DEFAULT_API_URL).replace(/\/+$/, "");
-}
 
 function getAuthHeaders(): Record<string, string> {
   const token =
@@ -108,10 +104,10 @@ function normalizeWeatherResponse(payload: unknown): WeatherData {
     hourly: normalizeHourly(data.hourly),
     units: isRecord(data.units)
       ? Object.fromEntries(
-          Object.entries(data.units).filter(
-            (entry): entry is [string, string] => typeof entry[1] === "string",
-          ),
-        )
+        Object.entries(data.units).filter(
+          (entry): entry is [string, string] => typeof entry[1] === "string",
+        ),
+      )
       : undefined,
     generatedAlerts,
     generatedCount,
@@ -122,7 +118,7 @@ export const fetchWeatherForStation = async (
   stationId: number,
 ): Promise<WeatherData | null> => {
   try {
-    const response = await fetch(`${getApiBaseUrl()}/weather/${stationId}`, {
+    const response = await apiFetch(`/weather/${stationId}`, {
       headers: {
         Accept: "application/json",
         ...getAuthHeaders(),
@@ -133,9 +129,10 @@ export const fetchWeatherForStation = async (
       throw new Error("Erro ao buscar clima da estação");
     }
 
-    return normalizeWeatherResponse(await response.json());
-  } catch (error) {
-    console.error("Erro na integração:", error);
+    const json = await response.json();
+    return normalizeWeatherResponse(json);
+  } catch (error: unknown) {
+    console.error("Erro na integração:", error instanceof Error ? error.message : error);
     return null;
   }
 };

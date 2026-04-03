@@ -15,7 +15,7 @@ import { DashboardChart, type PeriodoTempo } from "../components/DashboardChart"
 import { fetchWeatherForStation, type WeatherData } from "../services/weather-service";
 import { parameterService, type Parameter } from "../services/parameter-service";
 import { stationParameterService } from "../services/station-parameter-service";
-import { useAlertNotifications } from "../context/alert-notifications-context";
+import { useAlertNotifications } from "../contexts/alert-notifications-context";
 
 
 const getIconForParameter = (jsonKey: string) => {

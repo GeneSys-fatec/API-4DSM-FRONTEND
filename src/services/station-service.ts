@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "react-toastify";
-
-const DEFAULT_API_BASE_URL = "http://localhost:3333";
+import { apiFetch } from './api';
 
 export interface Station {
   id: string;
@@ -42,15 +41,6 @@ export interface CreateStationInput {
   isActive?: boolean;
 }
 
-function getApiBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
-  const normalized = (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(
-    /\/+$/,
-    "",
-  );
-  return normalized;
-}
-
 function isAbortError(err: unknown): err is { name: string } {
   return (
     typeof err === "object" &&
@@ -64,8 +54,7 @@ async function fetchJson<T>(
   path: string,
   init?: RequestInit & { signal?: AbortSignal },
 ): Promise<T> {
-  const baseUrl = getApiBaseUrl();
-  const response = await fetch(`${baseUrl}${path}`, init);
+  const response = await apiFetch(path, init);
 
   if (!response.ok) {
     throw new Error(`Request failed (${response.status})`);
@@ -137,7 +126,6 @@ export async function getStationById(
 ): Promise<StationApi> {
   return fetchJson<StationApi>(`/stations/${id}`, {
     method: "GET",
-    headers: { Accept: "application/json" },
     signal: options?.signal,
   });
 }
@@ -147,7 +135,6 @@ export async function listStations(options?: {
 }): Promise<Station[]> {
   const data = await fetchJson<StationApi[]>("/stations", {
     method: "GET",
-    headers: { Accept: "application/json" },
     signal: options?.signal,
   });
   return data.map(mapStationApiToEstacaoModel);
@@ -168,10 +155,6 @@ export async function createStation(
 
   const created = await fetchJson<StationApi>("/stations/create", {
     method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(payload),
   });
   return mapStationApiToEstacaoModel(created);
@@ -193,10 +176,6 @@ export async function updateStation(
 
   const updated = await fetchJson<StationApi>(`/stations/update/${id}`, {
     method: "PUT",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(payload),
   });
 
@@ -398,10 +377,8 @@ export async function deleteStation(
     if (!window.confirm(message)) return;
   }
 
-  const baseUrl = getApiBaseUrl();
-  const response = await fetch(`${baseUrl}/stations/delete/${id}`, {
+  const response = await apiFetch(`/stations/delete/${id}`, {
     method: "DELETE",
-    headers: { Accept: "application/json" },
     signal: options?.signal,
   });
 

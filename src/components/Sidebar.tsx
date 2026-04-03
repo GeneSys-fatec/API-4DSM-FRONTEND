@@ -8,6 +8,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -15,6 +16,8 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
+  const { logout } = useAuth(); 
+
   const menuItems = [
     {
       to: "/admin/selecionar-estacao",
@@ -23,12 +26,7 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     },
     { to: "/admin/gerenciar-estacoes", icon: Wifi, label: "Gerenciar Estações" },
     { to: "/admin/gerenciar-parametros", icon: AlertCircle, label: "Gerenciar Parâmetros" },
-    { to: "/admin/cadastrar", icon: Users, label: "Cadastrar Administrador" },
-  ];
-
-  const bottomItems = [
-    { to: "/admin/help", icon: HelpCircle, label: "Help" },
-    { to: "/logout", icon: LogOut, label: "Log out" },
+    { to: "/admin/gerenciar-administradores", icon: Users, label: "Cadastrar Administrador" },
   ];
 
   return (
@@ -95,20 +93,31 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
         </nav>
 
         <div className="flex flex-col gap-2 border-t border-gray-100 pt-4 pb-2">
-          {bottomItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className="flex items-center py-3 mx-2 px-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all"
-            >
-              <div className="w-10 flex justify-center shrink-0">
-                <item.icon className="w-5 h-5" />
-              </div>
-              <span className="whitespace-nowrap pl-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-                {item.label}
-              </span>
-            </NavLink>
-          ))}
+          <NavLink
+            to="/admin/help"
+            onClick={closeMenu}
+            className="flex items-center py-3 mx-2 px-3 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all"
+          >
+            <div className="w-10 flex justify-center shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <span className="whitespace-nowrap pl-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
+              Help
+            </span>
+          </NavLink>
+
+          <button
+            onClick={logout}
+            type="button"
+            className="flex items-center py-3 mx-2 px-3 rounded-xl text-gray-500 hover:bg-red-50 hover:text-red-600 transition-all w-full text-left cursor-pointer group/logout"
+          >
+            <div className="w-10 flex justify-center shrink-0">
+              <LogOut className="w-5 h-5 group-hover/logout:text-red-600 transition-colors" />
+            </div>
+            <span className="whitespace-nowrap pl-3 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 font-medium">
+              Log out
+            </span>
+          </button>
         </div>
       </aside>
     </>

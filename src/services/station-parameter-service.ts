@@ -1,6 +1,5 @@
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333';
+import { apiFetch } from './api';
 
 export interface StationParameter {
     id: number;
@@ -18,7 +17,7 @@ export interface CreateStationParameterPayload {
 export const stationParameterService = {
     findByStation: async (idStation: number): Promise<StationParameter[]> => {
         try {
-            const response = await fetch(`${API_URL}/parameters/station/${idStation}`);
+            const response = await apiFetch(`/parameters/station/${idStation}`);
             if (!response.ok) {
                 console.error("Erro no GET findByStation:", await response.text());
                 throw new Error("Erro ao buscar parâmetros da estação");
@@ -32,9 +31,8 @@ export const stationParameterService = {
 
     create: async (data: CreateStationParameterPayload): Promise<StationParameter | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameters/create`, {
+            const response = await apiFetch(`/parameters/create`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             
@@ -54,9 +52,8 @@ export const stationParameterService = {
 
     update: async (id: number, data: CreateStationParameterPayload): Promise<StationParameter | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameters/update/${id}`, {
+            const response = await apiFetch(`/parameters/update/${id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data),
             });
             if (!response.ok) throw new Error("Erro ao atualizar vínculo");
@@ -69,7 +66,7 @@ export const stationParameterService = {
 
     delete: async (id: number): Promise<boolean> => {
         try {
-            const response = await fetch(`${API_URL}/parameters/delete/${id}`, {
+            const response = await apiFetch(`/parameters/delete/${id}`, {
                 method: 'DELETE',
             });
             if (!response.ok) throw new Error("Erro ao deletar vínculo");
