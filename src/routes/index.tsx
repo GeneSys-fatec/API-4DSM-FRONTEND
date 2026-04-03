@@ -16,7 +16,8 @@ export function AppRoutes() {
         <Route path="/admin/selecionar-estacao" element={<StationSelect />} />
         <Route path="/admin/dashboard/:id" element={<Dashboard />} />
         <Route path="/admin/gerenciar-parametros" element={<Parameters/>} />
-        <Route path="/admin/gerenciar-estacoes" element={<StationManage />} /> 
+        <Route path="/admin/gerenciar-estacoes" element={<StationManage />} />
+        <Route path="/admin/gerenciar-alertas" element={<Navigate to="/admin/selecionar-estacao" replace />} />
       </Route>
     </Routes>
   );
