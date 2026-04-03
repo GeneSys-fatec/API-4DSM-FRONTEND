@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, CircleUser, Menu, LogOut } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
-import { useAlertNotifications } from "../context/alert-notifications-context";
+import { useAlertNotifications } from "../contexts/alert-notifications-context";
 
 interface HeaderProps {
   toggleMobileMenu: () => void;
@@ -162,12 +162,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           </div>
         )}
 
-        <button
-          className="p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-          aria-label="Perfil do Usuário"
-        >
-          <CircleUser className="w-6 h-6" />
-        </button>
       </div>
     </header>
   );

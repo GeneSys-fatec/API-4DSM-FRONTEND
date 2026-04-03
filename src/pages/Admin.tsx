@@ -1,0 +1,177 @@
+import { useEffect, useState, useCallback } from "react";
+import { Trash2, Pencil } from "lucide-react";
+import { toast } from "react-hot-toast";
+import { type Administrator, administratorService } from "../services/administrator-services";
+import { CreateAdminModal } from "../components/CreateAdminModal";
+import { EditAdminModal } from "../components/EditAdminModal";
+import { TableBase } from "@/components/TableBody";
+import { ConfirmDelete } from "@/components/ConfirmDelete";
+
+const columns = [
+    {
+        key: "name",
+        header: "Nome",
+        tdClassName: "font-semibold text-gray-900",
+        render: (item: Administrator) => item.name,
+    },
+    {
+        key: "email",
+        header: "E-mail",
+        tdClassName: "text-gray-600",
+        render: (item: Administrator) => item.email,
+    },
+];
+
+export function Admin() {
+    const [admins, setAdmins] = useState<Administrator[]>([]);
+    
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+    
+    const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
+    const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
+
+    const loadAdmins = useCallback(async () => {
+        const data = await administratorService.findAll();
+        setAdmins(data);
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchAdmins = async () => {
+            const data = await administratorService.findAll();
+            if (isMounted) setAdmins(data);
+        };
+        fetchAdmins();
+        return () => { isMounted = false; };
+    }, []);
+
+    const openCreateModal = () => setIsCreateModalOpen(true);
+    
+    const openEditModal = (admin: Administrator) => {
+        setSelectedAdminId(admin.id);
+        setIsEditModalOpen(true);
+    };
+
+    const openDeleteModal = (admin: Administrator) => {
+        setAdminToDelete(admin);
+        setIsConfirmDeleteOpen(true);
+    };
+
+    const closeModal = () => {
+        setIsCreateModalOpen(false);
+        setIsEditModalOpen(false);
+        setIsConfirmDeleteOpen(false);
+        setSelectedAdminId(null);
+        setAdminToDelete(null);
+    };
+
+    const handleFormSuccess = async () => {
+        await loadAdmins();
+        closeModal();
+    };
+
+    const handleDeleteConfirm = async () => {
+        if (!adminToDelete) return;
+        try {
+            await administratorService.delete(adminToDelete.id);
+            toast.success("Administrador excluído com sucesso!");
+            await loadAdmins();
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Não foi possível excluir o administrador.";
+            toast.error(message);
+        }
+        closeModal();
+    };
+
+    return (
+        <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
+                    Administradores cadastrados
+                </h1>
+
+                <button
+                    type="button"
+                    className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex self-end p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
+                    onClick={openCreateModal}
+                >
+                    Cadastrar administrador
+                </button>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                {admins.length > 0 ? (
+                    <>
+                        <TableBase
+                            data={admins}
+                            columns={columns}
+                            rowClassName="hover:bg-[#e8f5e9]/50 group transition-colors"
+                            getRowKey={(item) => item.id.toString()}
+                            renderActions={(item) => (
+                                <div className="flex items-center justify-end gap-3 px-2">
+                                    <button
+                                        type="button"
+                                        className="cursor-pointer"
+                                        onClick={() => openEditModal(item)}
+                                        title="Editar"
+                                    >
+                                        <Pencil className="text-gray-400 hover:text-tecsus-green w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="cursor-pointer"
+                                        onClick={() => openDeleteModal(item)}
+                                        title="Excluir"
+                                    >
+                                        <Trash2 className="text-gray-400 hover:text-red-500 w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
+                                    </button>
+                                </div>
+                            )}
+                        />
+                        <button
+                            type="button"
+                            className="md:hidden w-full py-3 bg-tecsus-green text-white font-bold text-sm opacity-90 hover:opacity-100 cursor-pointer transition-opacity"
+                            onClick={openCreateModal}
+                        >
+                            + Cadastrar administrador
+                        </button>
+                    </>
+                ) : (
+                    <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
+                        Nenhum administrador encontrado.
+                    </div>
+                )}
+            </div>
+
+            <CreateAdminModal
+                isOpen={isCreateModalOpen}
+                onClose={closeModal}
+                onSuccess={handleFormSuccess}
+            />
+
+            <EditAdminModal
+                isOpen={isEditModalOpen}
+                adminId={selectedAdminId}
+                onClose={closeModal}
+                onSuccess={handleFormSuccess}
+            />
+
+            {isConfirmDeleteOpen && (
+                <div
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4 backdrop-blur-sm"
+                    onClick={closeModal}
+                >
+                    <div onClick={(event) => event.stopPropagation()}>
+                        <ConfirmDelete
+                            onClose={closeModal}
+                            onConfirm={handleDeleteConfirm}
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

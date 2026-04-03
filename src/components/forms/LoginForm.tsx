@@ -24,8 +24,9 @@ export function LoginForm() {
       toast.success('Acesso liberado!');
       login(token); 
 
-    } catch (err: any) {
-      setError(err.message || 'Credenciais inválidas. Tente novamente.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Credenciais inválidas. Tente novamente.';
+      setError(message);
       toast.error('Falha ao autenticar.');
     } finally {
       setIsLoading(false);

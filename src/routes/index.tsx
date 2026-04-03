@@ -16,6 +16,7 @@ export function AppRoutes() {
         <Toaster position="top-right" /> 
         
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           {/* Rota Pública */}
           <Route path="/login" element={<Login />} />
 

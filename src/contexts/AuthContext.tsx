@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { apiFetch } from '@/services/api';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';

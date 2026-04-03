@@ -57,7 +57,9 @@ describe('Weather Service (Frontend)', () => {
   });
 
   it('deve enviar Authorization quando existir token salvo', async () => {
+    window.localStorage.setItem('@ClimaSense:token', 'abc123');
     window.localStorage.setItem('token', 'abc123');
+    
     getFetchMock().mockResolvedValueOnce({
       ok: true,
       json: async () => ({ current: {}, hourly: {}, generatedAlerts: [] }),
@@ -66,6 +68,8 @@ describe('Weather Service (Frontend)', () => {
     await fetchWeatherForStation(8);
 
     const [, init] = getFetchMock().mock.calls[0]!;
-    expect((init?.headers as Record<string, string> | undefined)?.Authorization).toBe('Bearer abc123');
+    
+    const headers = new Headers(init?.headers);
+    expect(headers.get('Authorization')).toBe('Bearer abc123');
   });
 });
