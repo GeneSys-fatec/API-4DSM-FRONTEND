@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Kodchasan:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-tecsus-green: #006400;
+  --color-bg-dashboard: #f3f4f6;
+  --font-kodchasan: "Kodchasan", sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-bg-dashboard);
+  margin: 0;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.apexcharts-canvas:focus,
+.apexcharts-canvas *:focus {
+  outline: none !important;
+}
