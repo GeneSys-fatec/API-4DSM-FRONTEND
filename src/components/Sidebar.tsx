@@ -16,7 +16,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
-  const { logout } = useAuth(); // Trazendo a função de logout do seu contexto
+  const { logout } = useAuth(); 
 
   const menuItems = [
     {

@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, CircleUser, Menu, LogOut } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { Bell, Menu } from "lucide-react";
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
 
 interface HeaderProps {
@@ -8,21 +7,9 @@ interface HeaderProps {
 }
 
 export function Header({ toggleMobileMenu }: HeaderProps) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const { logout } = useAuth();
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
   const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
   const notificationPanelRef = useRef<HTMLDivElement | null>(null);
+  
   const {
     notifications,
     unseenCount,
@@ -95,29 +82,8 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           )}
         </button>
 
-        {/* <div className="relative" ref={dropdownRef}>
-          <button
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
-            aria-label="Perfil do Usuário"
-          >
-            <CircleUser className="w-6 h-6" />
-          </button>
-
-          {isDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl py-2 z-50 border border-gray-100">
-              <button
-                onClick={logout}
-                className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="font-medium">Deslogar</span>
-              </button>
-            </div>
-          )}
-        </div> */}
         {isNotificationPanelOpen && (
-          <div className="absolute top-[68px] right-4 md:right-8 w-[min(92vw,24rem)] rounded-xl bg-white text-gray-800 shadow-xl border border-gray-200 z-60">
+          <div className="absolute top-[68px] right-4 md:right-8 w-[min(92vw,24rem)] rounded-xl bg-white text-gray-800 shadow-xl border border-gray-200 z-[60]">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
               <h2 className="text-sm font-bold">Notificações</h2>
               <div className="flex items-center gap-3 text-xs">
@@ -161,7 +127,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
             </div>
           </div>
         )}
-
       </div>
     </header>
   );
