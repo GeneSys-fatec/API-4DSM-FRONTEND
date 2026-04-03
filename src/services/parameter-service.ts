@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3333';
+import { apiFetch } from './api';
 
 export interface Parameter {
     id: number;
@@ -22,7 +22,7 @@ export interface CreateParameterPayload {
 export const parameterService = {
     findAll: async (): Promise<Parameter[]> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-types`);
+            const response = await apiFetch(`/parameter-types`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar parâmetros");
@@ -37,7 +37,7 @@ export const parameterService = {
 
     findById: async (id: number): Promise<Parameter | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-types/${id}`);
+            const response = await apiFetch(`/parameter-types/${id}`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar parâmetro");
@@ -52,11 +52,8 @@ export const parameterService = {
 
     create: async (data: CreateParameterPayload): Promise<Parameter | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-types/create`, {
+            const response = await apiFetch(`/parameter-types/create`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(data),
             });
 
@@ -73,11 +70,8 @@ export const parameterService = {
 
     update: async (id: number, data: CreateParameterPayload): Promise<Parameter | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-types/update/${id}`, {
+            const response = await apiFetch(`/parameter-types/update/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(data),
             });
 
@@ -94,7 +88,7 @@ export const parameterService = {
 
     delete: async (id: number): Promise<boolean> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-types/delete/${id}`, {
+            const response = await apiFetch(`/parameter-types/delete/${id}`, {
                 method: 'DELETE',
             });
 

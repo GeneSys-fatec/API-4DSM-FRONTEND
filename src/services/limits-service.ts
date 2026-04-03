@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3333';
+import { apiFetch } from './api';
 
 export interface Limits {
     id: number;
@@ -16,7 +16,7 @@ export interface CreateLimitsPayload {
 export const limitsService = {
     findAll: async (): Promise<Limits[]> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-limits`);
+            const response = await apiFetch(`/parameter-limits`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar limites");
@@ -31,7 +31,7 @@ export const limitsService = {
 
     findById: async (id: number): Promise<Limits | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-limits/${id}`);
+            const response = await apiFetch(`/parameter-limits/${id}`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar limites");
@@ -46,11 +46,8 @@ export const limitsService = {
 
     create: async (data: CreateLimitsPayload): Promise<Limits | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-limits/create`, {
+            const response = await apiFetch(`/parameter-limits/create`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(data),
             });
 
@@ -67,11 +64,8 @@ export const limitsService = {
 
     update: async (id: number, data: CreateLimitsPayload): Promise<Limits | null> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-limits/update/${id}`, {
+            const response = await apiFetch(`/parameter-limits/update/${id}`, {
                 method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(data),
             });
 
@@ -88,7 +82,7 @@ export const limitsService = {
 
     delete: async (id: number): Promise<boolean> => {
         try {
-            const response = await fetch(`${API_URL}/parameter-limits/delete/${id}`, {
+            const response = await apiFetch(`/parameter-limits/delete/${id}`, {
                 method: 'DELETE'
             });
 

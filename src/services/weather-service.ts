@@ -1,9 +1,8 @@
-
-const API_URL = 'http://localhost:3333'; 
+import { apiFetch } from './api';
 
 export const fetchWeatherForStation = async (stationId: number) => {
   try {
-    const response = await fetch(`${API_URL}/weather/${stationId}`);
+    const response = await apiFetch(`/weather/${stationId}`);
     
     if (!response.ok) {
         throw new Error("Erro ao buscar clima da estação");
