@@ -32,3 +32,82 @@ jobs:
         run: npm run build
       - name: Test
         run: npm run test:unit
+
+  deploy-sandbox:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment: sandbox
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to EC2 (sandbox)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SANDBOX_EC2_HOST }}
+          username: ${{ secrets.SANDBOX_EC2_USER }}
+          key: ${{ secrets.SANDBOX_EC2_SSH_KEY }}
+          script: |
+            cd ~/app/frontend
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+            npm ci
+            npm run build
+            # Reinicia o serviço no PM2 servindo a pasta de build como SPA
+            pm2 describe frontend > /dev/null 2>&1 \
+              && pm2 restart frontend \
+              || pm2 serve dist 3000 --name "frontend" --spa
+
+  deploy-release:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/release'
+    environment: release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to EC2 (release)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.RELEASE_EC2_HOST }}
+          username: ${{ secrets.RELEASE_EC2_USER }}
+          key: ${{ secrets.RELEASE_EC2_SSH_KEY }}
+          script: |
+            cd ~/app/frontend
+            git fetch origin
+            git checkout release
+            git pull origin release
+            npm ci
+            npm run build
+            pm2 describe frontend > /dev/null 2>&1 \
+              && pm2 restart frontend \
+              || pm2 serve dist 3001 --name "frontend" --spa
+
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to EC2 (production)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_SSH_KEY }}
+          script: |
+            cd ~/app/frontend
+            git fetch origin
+            git checkout master
+            git pull origin master
+            npm ci
+            npm run build
+            pm2 describe frontend > /dev/null 2>&1 \
+              && pm2 restart frontend \
+              || pm2 serve dist 80 --name "frontend" --spa
