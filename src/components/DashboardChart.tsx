@@ -1,22 +1,28 @@
 import Chart from "react-apexcharts";
-import type { ApexOptions } from "apexcharts";
+import type { ApexAxisChartSeries, ApexOptions } from "apexcharts";
 import { Loader2 } from "lucide-react";
 import type { Parameter } from "../services/parameter-service";
+import type { WeatherHourlyData } from "../services/weather-service";
 
 export type PeriodoTempo = "24h" | "7d" | "30d";
 
 interface DashboardChartProps {
   parametro: Parameter | null;
   periodo: PeriodoTempo;
-  dadosHistoricos: any | null; 
+  dadosHistoricos: WeatherHourlyData | null;
 }
+
+type ChartData = {
+  categories: string[];
+  data: number[];
+};
 
 export function DashboardChart({
   parametro,
   periodo,
   dadosHistoricos,
 }: DashboardChartProps) {
-  const processarDadosDaAPI = () => {
+  const processarDadosDaAPI = (): ChartData => {
     if (!dadosHistoricos || !dadosHistoricos.time || !parametro) {
       return { categories: [], data: [] };
     }
@@ -27,8 +33,12 @@ export function DashboardChart({
     if (periodo === "30d") horasParaPegar = 24 * 30;
 
     const rawTimes = dadosHistoricos.time.slice(-horasParaPegar);
-    
-    const rawData = dadosHistoricos[targetKey] ? dadosHistoricos[targetKey].slice(-horasParaPegar) : [];
+
+    const rawSeries = dadosHistoricos[targetKey] ?? [];
+    const rawData = rawSeries
+      .slice(-horasParaPegar)
+      .map((value) => Number(value))
+      .filter((value) => Number.isFinite(value));
 
     const categories = rawTimes.map((isoString: string) => {
       const date = new Date(isoString);
@@ -94,7 +104,11 @@ export function DashboardChart({
       },
     };
 
-    return { options, series: [{ name: parametro?.name || "Valor", data: currentData.data }] };
+    const series: ApexAxisChartSeries = [
+      { name: parametro?.name || "Valor", data: currentData.data },
+    ];
+
+    return { options, series };
   };
 
   if (!dadosHistoricos || !parametro) {

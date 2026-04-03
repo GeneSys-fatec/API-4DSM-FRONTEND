@@ -21,13 +21,27 @@ export function ParameterSelectionForm({
 
   const loadParameters = async () => {
     setIsLoading(true);
-    const data = await parameterService.findAll();
-    setParametrosDisponiveis(data);
-    setIsLoading(false);
+    try {
+      const data = await parameterService.findAll();
+      setParametrosDisponiveis(data);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
-    loadParameters();
+    let cancelled = false;
+
+    void (async () => {
+      const data = await parameterService.findAll();
+      if (cancelled) return;
+      setParametrosDisponiveis(data);
+      setIsLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const parametrosFiltrados = parametrosDisponiveis.filter((p) =>
@@ -54,7 +68,7 @@ export function ParameterSelectionForm({
           onClose={() => setIsAddingNewParam(false)}
           onSuccess={() => {
             setIsAddingNewParam(false);
-            loadParameters();
+            void loadParameters();
           }}
         />
       </div>

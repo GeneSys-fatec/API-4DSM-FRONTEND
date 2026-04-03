@@ -14,6 +14,8 @@ export interface Station {
   isActive: boolean;
 }
 
+export type Estacao = Station;
+
 export interface StationApi {
   id: number;
   name: string;
@@ -39,11 +41,12 @@ export interface CreateStationInput {
   isActive?: boolean;
 }
 
-function isAbortError(err: unknown): boolean {
+function isAbortError(err: unknown): err is { name: string } {
   return (
     typeof err === "object" &&
     err !== null &&
-    (err as any).name === "AbortError"
+    "name" in err &&
+    (err as { name?: string }).name === "AbortError"
   );
 }
 
@@ -244,7 +247,7 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
       setIsCreating(true);
       try {
         const created = await createStation(form);
-        if (onCreated) await onCreated();
+        await onCreated?.();
         return created;
       } catch {
         setErrorMessage("Não foi possível cadastrar a estação.");
@@ -317,7 +320,7 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
       setIsSaving(true);
       try {
         const updated = await updateStation(stationId, form);
-        if (onUpdated) await onUpdated();
+        await onUpdated?.();
         return updated;
       } catch {
         setErrorMessage("Não foi possível atualizar a estação.");

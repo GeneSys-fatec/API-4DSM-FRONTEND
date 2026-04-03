@@ -57,7 +57,7 @@ export function DeleteStationModal({
           {errorMessage && <div className="mb-4 text-sm text-red-500">{errorMessage}</div>}
 
           <p className="text-sm text-gray-700">
-            Tem certeza que deseja excluir{stationName ? ` a estação \"${stationName}\"` : " esta estação"}?
+            Tem certeza que deseja excluir{stationName ? ` a estação "${stationName}"` : " esta estação"}?
           </p>
 
           <div className="mt-6 flex items-center justify-end gap-3">
