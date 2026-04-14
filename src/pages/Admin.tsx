@@ -1,11 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
-import { Trash2, Pencil } from "lucide-react";
+import { Trash2, Pencil, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { type Administrator, administratorService } from "../services/administrator-services";
 import { CreateAdminModal } from "../components/CreateAdminModal";
 import { EditAdminModal } from "../components/EditAdminModal";
 import { TableBase } from "@/components/TableBody";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
+import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+
+const ADMIN_FILTERS_STORAGE_KEY = "@ClimaSense:filters:administrators";
+
+type AdminFiltersState = {
+    q: string;
+    status: "" | "true" | "false";
+};
+
+const DEFAULT_FILTERS: AdminFiltersState = {
+    q: "",
+    status: "",
+};
 
 const columns = [
     {
@@ -24,6 +37,23 @@ const columns = [
 
 export function Admin() {
     const [admins, setAdmins] = useState<Administrator[]>([]);
+    const [filters, setFilters] = useState<AdminFiltersState>(() => {
+        const stored = loadStoredFilters(ADMIN_FILTERS_STORAGE_KEY, DEFAULT_FILTERS as AdminFiltersState & { status?: string });
+        const rawStatus = String(stored.status ?? "").toLowerCase();
+
+        let normalizedStatus: AdminFiltersState["status"] = "";
+        if (rawStatus === "true" || rawStatus === "ativo" || rawStatus === "ativa") {
+            normalizedStatus = "true";
+        }
+        if (rawStatus === "false" || rawStatus === "inativo" || rawStatus === "inativa") {
+            normalizedStatus = "false";
+        }
+
+        return {
+            q: stored.q ?? "",
+            status: normalizedStatus,
+        };
+    });
     
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -33,19 +63,20 @@ export function Admin() {
     const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
 
     const loadAdmins = useCallback(async () => {
-        const data = await administratorService.findAll();
+        const data = await administratorService.findAll({
+            q: filters.q,
+            status: filters.status,
+        });
         setAdmins(data);
-    }, []);
+    }, [filters.q, filters.status]);
 
     useEffect(() => {
-        let isMounted = true;
-        const fetchAdmins = async () => {
-            const data = await administratorService.findAll();
-            if (isMounted) setAdmins(data);
-        };
-        fetchAdmins();
-        return () => { isMounted = false; };
-    }, []);
+        void loadAdmins();
+    }, [loadAdmins]);
+
+    useEffect(() => {
+        persistFilters(ADMIN_FILTERS_STORAGE_KEY, filters);
+    }, [filters]);
 
     const openCreateModal = () => setIsCreateModalOpen(true);
     
@@ -85,12 +116,57 @@ export function Admin() {
         closeModal();
     };
 
+    const hasActiveFilters = Boolean(filters.q.trim() || filters.status);
+
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
                     Administradores cadastrados
                 </h1>
+
+                <div className="flex flex-wrap gap-3 w-full md:w-auto">
+                    <div className="relative w-full md:w-72">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar administrador"
+                            value={filters.q}
+                            onChange={(event) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    q: event.target.value,
+                                }))
+                            }
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        />
+                    </div>
+
+                    <select
+                        value={filters.status}
+                        onChange={(event) =>
+                            setFilters((prev) => ({
+                                ...prev,
+                                status: event.target.value as AdminFiltersState["status"],
+                            }))
+                        }
+                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                    >
+                        <option value="">Todos os status</option>
+                        <option value="true">Ativo</option>
+                        <option value="false">Inativo</option>
+                    </select>
+
+                    <button
+                        type="button"
+                        className="bg-gray-100 text-gray-700 font-semibold text-sm hidden md:flex self-end p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md"
+                        onClick={() => setFilters(DEFAULT_FILTERS)}
+                    >
+                        Limpar filtros
+                    </button>
+                </div>
 
                 <button
                     type="button"
@@ -141,7 +217,9 @@ export function Admin() {
                     </>
                 ) : (
                     <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
-                        Nenhum administrador encontrado.
+                        {hasActiveFilters
+                            ? "Nenhum administrador encontrado para os filtros aplicados."
+                            : "Nenhum administrador encontrado."}
                     </div>
                 )}
             </div>

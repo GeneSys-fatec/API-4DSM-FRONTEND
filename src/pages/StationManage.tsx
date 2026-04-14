@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search,
   Settings2,
@@ -13,7 +13,7 @@ import { DeleteStationModal } from "../components/DeleteStationModal";
 import { EditStationModal } from "../components/EditStationModal";
 import {
   deleteStation,
-  stationFilter,
+  type StationListFilters,
   type Station,
   useCreateStationModal,
   useEditStationModal,
@@ -21,18 +21,70 @@ import {
 } from "../services/station-service";
 import { toast } from "react-toastify";
 import { ParameterByStation } from "@/components/ParameterByStation";
+import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+
+const STATION_FILTERS_STORAGE_KEY = "@ClimaSense:filters:stations";
+const STATION_COLUMNS_STORAGE_KEY = "@ClimaSense:columns:stations";
+
+type StationColumnKey = "nome" | "cidade" | "codigo" | "isActive";
+
+type StationFiltersState = {
+  q: string;
+  status: "" | "true" | "false";
+};
+
+const DEFAULT_FILTERS: StationFiltersState = {
+  q: "",
+  status: "",
+};
+
+const DEFAULT_VISIBLE_COLUMNS: Record<StationColumnKey, boolean> = {
+  nome: true,
+  cidade: true,
+  codigo: true,
+  isActive: true,
+};
 
 export function StationManage() {
-  const [termoBusca, setTermoBusca] = useState("");
+  const [filters, setFilters] = useState<StationFiltersState>(() => {
+    const stored = loadStoredFilters(STATION_FILTERS_STORAGE_KEY, DEFAULT_FILTERS as StationFiltersState & { status?: string });
+    const rawStatus = String(stored.status ?? "").toLowerCase();
+
+    let normalizedStatus: StationFiltersState["status"] = "";
+    if (rawStatus === "true" || rawStatus === "ativa") {
+      normalizedStatus = "true";
+    }
+    if (rawStatus === "false" || rawStatus === "inativa") {
+      normalizedStatus = "false";
+    }
+
+    return {
+      q: stored.q ?? "",
+      status: normalizedStatus,
+    };
+  });
+
+  const stationFilters = useMemo<StationListFilters>(() => {
+    return {
+      q: filters.q,
+      ...(filters.status ? { isActive: filters.status === "true" } : {}),
+    };
+  }, [filters.q, filters.status]);
+
   const {
     stations: estacoes,
     isLoading,
     errorMessage,
     reload,
-  } = useStationsList();
+  } = useStationsList(stationFilters);
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
   const [limitsTarget, setLimitsTarget] = useState<Station | null>(null);
+  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<Record<StationColumnKey, boolean>>(() =>
+    loadStoredFilters(STATION_COLUMNS_STORAGE_KEY, DEFAULT_VISIBLE_COLUMNS),
+  );
+  const columnMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Station | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -81,9 +133,30 @@ export function StationManage() {
     }
   };
 
-  const estacoesFiltradas = useMemo(() => {
-    return stationFilter(estacoes, termoBusca);
-  }, [estacoes, termoBusca]);
+  const hasActiveFilters = Boolean(filters.q.trim() || filters.status);
+
+  useEffect(() => {
+    persistFilters(STATION_FILTERS_STORAGE_KEY, filters);
+  }, [filters]);
+
+  useEffect(() => {
+    persistFilters(STATION_COLUMNS_STORAGE_KEY, visibleColumns);
+  }, [visibleColumns]);
+
+  useEffect(() => {
+    if (!isColumnMenuOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!columnMenuRef.current?.contains(event.target as Node)) {
+        setIsColumnMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isColumnMenuOpen]);
 
   const colunasDaTabela: TableColumn<Station>[] = [
     {
@@ -125,6 +198,24 @@ export function StationManage() {
     },
   ];
 
+  const colunasVisiveis = useMemo(() => {
+    return colunasDaTabela.filter((column) => visibleColumns[column.key as StationColumnKey]);
+  }, [colunasDaTabela, visibleColumns]);
+
+  const toggleColumnVisibility = (columnKey: StationColumnKey) => {
+    setVisibleColumns((prev) => {
+      const visibleCount = Object.values(prev).filter(Boolean).length;
+      if (prev[columnKey] && visibleCount === 1) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [columnKey]: !prev[columnKey],
+      };
+    });
+  };
+
   return (
     <div className="p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
@@ -133,10 +224,39 @@ export function StationManage() {
         </h1>
 
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          <button className="flex items-center justify-between gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Select column
-            <ArrowUpDown size={14} className="text-gray-400" />
-          </button>
+          <div className="relative" ref={columnMenuRef}>
+            <button
+              onClick={() => setIsColumnMenuOpen((prev) => !prev)}
+              className="flex items-center justify-between gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors"
+            >
+              Select column
+              <ArrowUpDown size={14} className="text-gray-400" />
+            </button>
+
+            {isColumnMenuOpen ? (
+              <div className="absolute right-0 mt-2 w-52 rounded-lg border border-gray-200 bg-white shadow-lg z-20 p-2">
+                {[
+                  { key: "nome", label: "Nome" },
+                  { key: "cidade", label: "Cidade" },
+                  { key: "codigo", label: "Código" },
+                  { key: "isActive", label: "Status" },
+                ].map((option) => (
+                  <label
+                    key={option.key}
+                    className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={visibleColumns[option.key as StationColumnKey]}
+                      onChange={() => toggleColumnVisibility(option.key as StationColumnKey)}
+                      className="accent-tecsus-green"
+                    />
+                    {option.label}
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
           <div className="relative w-full sm:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -145,13 +265,37 @@ export function StationManage() {
             <input
               type="text"
               placeholder="Procurar Estação"
-              value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
+              value={filters.q}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  q: e.target.value,
+                }))
+              }
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green transition-all"
             />
           </div>
 
-          <button className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
+          <select
+            value={filters.status}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: e.target.value as StationFiltersState["status"],
+              }))
+            }
+            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+          >
+            <option value="">Todos os status</option>
+            <option value="true">Ativa</option>
+            <option value="false">Inativa</option>
+          </select>
+
+          <button
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            onClick={() => setFilters(DEFAULT_FILTERS)}
+            title="Limpar filtros"
+          >
             <Filter size={18} />
           </button>
 
@@ -174,14 +318,16 @@ export function StationManage() {
             <div className="p-8 text-sm text-red-500 flex justify-center items-center">
               {errorMessage}
             </div>
-          ) : estacoesFiltradas.length === 0 ? (
+          ) : estacoes.length === 0 ? (
             <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
-              Nenhuma estação encontrada. Cadastre sua primeira estação!
+              {hasActiveFilters
+                ? "Nenhuma estação encontrada para os filtros informados."
+                : "Nenhuma estação encontrada. Cadastre sua primeira estação!"}
             </div>
           ) : (
             <TableBase
-              data={estacoesFiltradas}
-              columns={colunasDaTabela}
+              data={estacoes}
+              columns={colunasVisiveis}
               rowClassName="hover:bg-gray-50/50"
               renderActions={(item) => (
                 <div className="flex justify-end gap-4">

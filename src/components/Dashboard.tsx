@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
+  Search,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
@@ -17,6 +18,7 @@ import { parameterService, type Parameter } from "../services/parameter-service"
 import { stationParameterService } from "../services/station-parameter-service";
 import { listPublicStations } from "../services/station-service"; 
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
+import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
 
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes('temp')) return <Thermometer className="w-5 h-5" />;
@@ -31,18 +33,45 @@ export function Dashboard() {
   const location = useLocation(); 
   const { id } = useParams();
   const { registerGeneratedAlerts } = useAlertNotifications();
+<<<<<<< HEAD:src/components/Dashboard.tsx
   const [stationName, setStationName] = useState<string>(""); 
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
+=======
+  const stationId = id ? Number.parseInt(id, 10) : 1;
+  const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
+
+  const [stationParams, setStationParams] = useState<Parameter[]>([]);
+  const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
+  const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
+  const [parameterQuery, setParameterQuery] = useState("");
+  
+>>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema):src/pages/Dashboard.tsx
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isAdminRoute = location.pathname.includes('/admin');
 
   useEffect(() => {
+    const stored = loadStoredFilters(dashboardFiltersStorageKey, {
+      periodoAtivo: "24h" as PeriodoTempo,
+      parameterQuery: "",
+    });
+
+    setPeriodoAtivo(stored.periodoAtivo);
+    setParameterQuery(stored.parameterQuery);
+  }, [dashboardFiltersStorageKey]);
+
+  useEffect(() => {
+    persistFilters(dashboardFiltersStorageKey, {
+      periodoAtivo,
+      parameterQuery,
+    });
+  }, [dashboardFiltersStorageKey, periodoAtivo, parameterQuery]);
+
+  useEffect(() => {
     let isMounted = true;
-    const stationId = id ? Number.parseInt(id, 10) : 1;
 
     const notifyGeneratedAlerts = (wData: WeatherData | null) => {
       if (!wData?.generatedAlerts?.length) {
@@ -79,9 +108,14 @@ export function Dashboard() {
         
         const [wData, allParams, stationLinks, publicStations] = await Promise.all([
           fetchWeatherForStation(stationId),
+<<<<<<< HEAD:src/components/Dashboard.tsx
           parameterService.findAll(),
           stationParameterService.findByStation(stationId),
           listPublicStations()
+=======
+          parameterService.findAll({ q: parameterQuery }),
+          stationParameterService.findByStation(stationId, { q: parameterQuery }),
+>>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema):src/pages/Dashboard.tsx
         ]);
 
         if (!isMounted) return;
@@ -105,6 +139,8 @@ export function Dashboard() {
             if (!current) return activeParams[0];
             return activeParams.find((item) => item.id === current.id) ?? activeParams[0];
           });
+        } else {
+          setParametroAtivo(null);
         }
 
         if (!wData && !backgroundRefresh) {
@@ -131,7 +167,7 @@ export function Dashboard() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [id, registerGeneratedAlerts]);
+  }, [parameterQuery, registerGeneratedAlerts, stationId]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
@@ -170,6 +206,29 @@ export function Dashboard() {
           </span>
         </div>
 
+        <div className="flex flex-wrap gap-3 mb-6">
+          <div className="relative w-full md:w-80">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              placeholder="Filtrar parâmetros por nome ou chave"
+              value={parameterQuery}
+              onChange={(event) => setParameterQuery(event.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setParameterQuery("")}
+            className="bg-gray-100 text-gray-700 font-semibold text-sm p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md"
+          >
+            Limpar filtro
+          </button>
+        </div>
+
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100">
             {error}
@@ -178,7 +237,9 @@ export function Dashboard() {
 
         {!isLoading && stationParams.length === 0 ? (
            <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
-              Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições.
+              {parameterQuery.trim()
+               ? "Nenhum parâmetro encontrado para o filtro informado."
+               : "Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições."}
            </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">

@@ -26,16 +26,6 @@ export interface WeatherData {
 export type WeatherResponse = WeatherData;
 
 
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    (typeof window !== "undefined" &&
-      (window.localStorage.getItem("authToken") ||
-        window.localStorage.getItem("token"))) ||
-    "";
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -121,7 +111,6 @@ export const fetchWeatherForStation = async (
     const response = await apiFetch(`/weather/public/${stationId}`, {
       headers: {
         Accept: "application/json",
-        ...getAuthHeaders(),
       },
     });
 

@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface Parameter {
     id: number;
@@ -19,10 +19,26 @@ export interface CreateParameterPayload {
     description?: string;
 }
 
+export interface ParameterListFilters {
+    q?: string;
+    from?: string;
+    to?: string;
+}
+
 export const parameterService = {
-    findAll: async (): Promise<Parameter[]> => {
+    findAll: async (filters?: ParameterListFilters): Promise<Parameter[]> => {
         try {
+<<<<<<< HEAD
             const response = await apiFetch(`/parameter-types/public`);
+=======
+            const queryString = buildQueryString({
+                q: filters?.q,
+                from: filters?.from,
+                to: filters?.to,
+            });
+
+            const response = await apiFetch(`/parameter-types${queryString}`);
+>>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema)
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar parâmetros");

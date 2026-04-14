@@ -64,6 +64,17 @@ describe("alert-service (api)", () => {
     });
   });
 
+  it("deve repassar filtros na listagem de alertas", async () => {
+    mockFetchJsonOnce([]);
+
+    await listAlerts({ q: "temperatura", status: "active" });
+
+    const [url] = getFetchMock().mock.calls[0]!;
+    expect(String(url)).toContain("/alerts?");
+    expect(String(url)).toContain("q=temperatura");
+    expect(String(url)).toContain("status=active");
+  });
+
   it("deve criar alerta enviando payload válido", async () => {
     mockFetchJsonOnce({
       id: 3,

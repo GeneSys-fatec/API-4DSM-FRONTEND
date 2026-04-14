@@ -74,6 +74,22 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
     });
   });
 
+  it("Critério: A listagem deve aceitar filtros e repassar query params", async () => {
+    mockFetchJsonOnce([]);
+
+    await listStations({
+      filters: {
+        q: "sul",
+        status: "ativa",
+      },
+    });
+
+    const [url] = getFetchMock().mock.calls[0]!;
+    expect(String(url)).toContain("/stations?");
+    expect(String(url)).toContain("q=sul");
+    expect(String(url)).toContain("status=ativa");
+  });
+
   it("Critério: O administrador deve conseguir cadastrar uma estação - deve enviar POST com dados válidos", async () => {
     // Arrange
     mockFetchJsonOnce({

@@ -48,4 +48,17 @@ describe('Parameter Service (Frontend)', () => {
     expect(JSON.parse(String(init?.body))).toHaveProperty('json_key', 'precipitation');
     expect(result?.id).toBe(2);
   });
+
+  it('deve listar parâmetros aplicando filtro por palavra-chave', async () => {
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+
+    await parameterService.findAll({ q: 'temp' });
+
+    const [url] = getFetchMock().mock.calls[0];
+    expect(String(url)).toContain('/parameter-types?');
+    expect(String(url)).toContain('q=temp');
+  });
 });

@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = "http://localhost:3333";
+import { apiFetch, buildQueryString } from "./api";
 
 export interface AlertApi {
   id: number;
@@ -31,31 +31,29 @@ export interface UpdateAlertPayload extends Partial<AlertPayload> {
   status?: "active" | "resolved";
 }
 
-function getApiBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
-  return (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
-}
-
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    (typeof window !== "undefined" &&
-      (window.localStorage.getItem("authToken") || window.localStorage.getItem("token"))) ||
-    "";
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
+export interface AlertListFilters {
+  q?: string;
+  stationId?: number;
+  parameterId?: number;
+  idTypeParam?: number;
+  status?: "active" | "resolved";
+  user?: string;
+  from?: string;
+  to?: string;
 }
 
 async function fetchJson<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
+  const headers = new Headers(init?.headers);
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
+  }
+
+  const response = await apiFetch(path, {
     ...init,
-    headers: {
-      Accept: "application/json",
-      ...getAuthHeaders(),
-      ...(init?.headers ?? {}),
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -122,8 +120,19 @@ export function alertFilter(alerts: AlertModel[], term: string): AlertModel[] {
   });
 }
 
-export async function listAlerts(): Promise<AlertModel[]> {
-  const data = await fetchJson<AlertApi[]>("/alerts", {
+export async function listAlerts(filters?: AlertListFilters): Promise<AlertModel[]> {
+  const queryString = buildQueryString({
+    q: filters?.q,
+    stationId: filters?.stationId,
+    parameterId: filters?.parameterId,
+    idTypeParam: filters?.idTypeParam,
+    status: filters?.status,
+    user: filters?.user,
+    from: filters?.from,
+    to: filters?.to,
+  });
+
+  const data = await fetchJson<AlertApi[]>(`/alerts${queryString}`, {
     method: "GET",
   });
 
