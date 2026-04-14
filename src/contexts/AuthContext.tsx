@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       localStorage.removeItem('@ClimaSense:token');
       setToken(null);
-      navigate('/login');
+      navigate('/');
     }
   };
 

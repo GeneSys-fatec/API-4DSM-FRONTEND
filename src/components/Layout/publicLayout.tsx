@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "./Sidebar";
-import { Header } from "./Header";
+import { Header } from "../Header";
+import { PublicSidebar } from "../PublicSidebar";
 
-export function Layout() {
+export function PublicLayout() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -11,7 +11,7 @@ export function Layout() {
       <Header toggleMobileMenu={() => setIsMobileMenuOpen(!isMobileMenuOpen)} />
 
       <div className="flex flex-1 overflow-hidden relative">
-        <Sidebar
+        <PublicSidebar
           isOpen={isMobileMenuOpen}
           closeMenu={() => setIsMobileMenuOpen(false)}
         />

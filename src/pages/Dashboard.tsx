@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import {
   Thermometer,
   Droplets,
@@ -15,8 +15,8 @@ import { DashboardChart, type PeriodoTempo } from "../components/DashboardChart"
 import { fetchWeatherForStation, type WeatherData } from "../services/weather-service";
 import { parameterService, type Parameter } from "../services/parameter-service";
 import { stationParameterService } from "../services/station-parameter-service";
+import { listPublicStations } from "../services/station-service"; 
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
-
 
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes('temp')) return <Thermometer className="w-5 h-5" />;
@@ -28,16 +28,17 @@ const getIconForParameter = (jsonKey: string) => {
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const location = useLocation(); 
   const { id } = useParams();
   const { registerGeneratedAlerts } = useAlertNotifications();
-
+  const [stationName, setStationName] = useState<string>(""); 
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
-  
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isAdminRoute = location.pathname.includes('/admin');
 
   useEffect(() => {
     let isMounted = true;
@@ -75,13 +76,21 @@ export function Dashboard() {
       }
 
       try {
-        const [wData, allParams, stationLinks] = await Promise.all([
+        
+        const [wData, allParams, stationLinks, publicStations] = await Promise.all([
           fetchWeatherForStation(stationId),
           parameterService.findAll(),
           stationParameterService.findByStation(stationId),
+          listPublicStations()
         ]);
 
         if (!isMounted) return;
+
+        
+        const currentStation = publicStations.find(s => Number(s.id) === stationId);
+        if (currentStation) {
+            setStationName(currentStation.nome);
+        }
 
         const activeParams = stationLinks
           .map((link) => allParams.find((p) => p.id === link.idTypeParam))
@@ -137,14 +146,16 @@ export function Dashboard() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate("/admin/selecionar-estacao")}
+              
+              onClick={() => navigate(isAdminRoute ? "/admin/selecionar-estacao" : "/")}
               className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
-              aria-label="Voltar para seleção de estações"
+              aria-label="Voltar"
             >
               <ArrowLeft size={24} />
             </button>
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
-              Dashboard: {id ? `Estação ${id}` : "Visão Geral"}
+              {/* Renderiza o nome da estação ou um fallback se ainda não carregou */}
+              {stationName ? stationName : (id ? `Dashboard: Estação ${id}` : "Visão Geral")}
             </h2>
           </div>
 

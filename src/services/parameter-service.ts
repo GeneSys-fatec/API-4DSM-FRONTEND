@@ -22,7 +22,7 @@ export interface CreateParameterPayload {
 export const parameterService = {
     findAll: async (): Promise<Parameter[]> => {
         try {
-            const response = await apiFetch(`/parameter-types`);
+            const response = await apiFetch(`/parameter-types/public`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar parâmetros");

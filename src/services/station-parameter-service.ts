@@ -17,7 +17,7 @@ export interface CreateStationParameterPayload {
 export const stationParameterService = {
     findByStation: async (idStation: number): Promise<StationParameter[]> => {
         try {
-            const response = await apiFetch(`/parameters/station/${idStation}`);
+            const response = await apiFetch(`/parameters/public/station/${idStation}`);
             if (!response.ok) {
                 console.error("Erro no GET findByStation:", await response.text());
                 throw new Error("Erro ao buscar parâmetros da estação");
