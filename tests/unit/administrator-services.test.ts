@@ -18,7 +18,6 @@ describe('Administrator Service (Frontend)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     globalThis.fetch = vi.fn();
-    // Silencia os console.error durante os testes para não sujar o terminal
     vi.spyOn(console, 'error').mockImplementation(() => {}); 
   });
 

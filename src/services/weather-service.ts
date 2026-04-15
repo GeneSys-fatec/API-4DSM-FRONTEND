@@ -118,7 +118,7 @@ export const fetchWeatherForStation = async (
   stationId: number,
 ): Promise<WeatherData | null> => {
   try {
-    const response = await apiFetch(`/weather/${stationId}`, {
+    const response = await apiFetch(`/weather/public/${stationId}`, {
       headers: {
         Accept: "application/json",
         ...getAuthHeaders(),

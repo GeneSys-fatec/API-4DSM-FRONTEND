@@ -346,14 +346,29 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
   };
 }
 
-export function stationFilter(estacoes: Station[], termo: string): Station[] {
-  const termoNormalizado = termo.trim().toLowerCase();
-  if (!termoNormalizado) return estacoes;
+function normalizeString(str: string): string {
+  if (!str) return "";
+  return str
+    .normalize("NFD") 
+    .replace(/[\u0300-\u036f]/g, "") 
+    .toLowerCase();
+}
 
-  return estacoes.filter((estacao) => {
-    const nome = estacao.nome.toLowerCase();
-    const codigo = estacao.codigo.toLowerCase();
-    return nome.includes(termoNormalizado) || codigo.includes(termoNormalizado);
+
+export function stationFilter(estacoes: Station[], termo: string): Station[] {
+  if (!termo.trim()) return estacoes;
+  const termoNormalizado = normalizeString(termo.trim());
+
+  return estacoes.filter((estacao) => {    
+    const nome = normalizeString(estacao.nome);
+    const cidade = normalizeString(estacao.cidade);
+    const codigo = normalizeString(estacao.codigo);
+
+    return (
+      nome.includes(termoNormalizado) ||
+      cidade.includes(termoNormalizado) ||
+      codigo.includes(termoNormalizado)
+    );
   });
 }
 
@@ -385,4 +400,47 @@ export async function deleteStation(
   if (!response.ok) {
     throw new Error(`Failed to delete station (status ${response.status})`);
   }
+}
+
+export async function listPublicStations(options?: { signal?: AbortSignal }): Promise<Station[]> {
+  const data = await fetchJson<StationApi[]>("/stations/public", {
+    method: "GET",
+    signal: options?.signal,
+  });
+  return data.map(mapStationApiToEstacaoModel);
+}
+
+
+export function usePublicStationsList() {
+  const [stations, setStations] = useState<Station[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const reload = useCallback(async (options?: { signal?: AbortSignal }) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await listPublicStations(options);
+      setStations(data);
+    } catch (err: unknown) {
+      if (isAbortError(err)) return;
+      setErrorMessage("Não foi possível carregar as estações públicas.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void reload({ signal: controller.signal });
+    return () => controller.abort();
+  }, [reload]);
+
+  return {
+    stations,
+    isLoading,
+    errorMessage,
+    reload,
+  };
 }

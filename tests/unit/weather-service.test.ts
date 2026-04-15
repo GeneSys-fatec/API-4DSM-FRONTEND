@@ -33,7 +33,7 @@ describe('Weather Service (Frontend)', () => {
     // Assert
     expect(globalThis.fetch).toHaveBeenCalledOnce();
     const [url] = getFetchMock().mock.calls[0];
-    expect(String(url)).toContain('/weather/5');
+    expect(String(url)).toContain('/weather/public/5');
     expect(result).toEqual({
       current: { temperature_2m: 25 },
       hourly: { time: [] },

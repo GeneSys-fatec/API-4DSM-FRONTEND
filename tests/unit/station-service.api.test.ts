@@ -4,6 +4,7 @@ import {
   deleteStation,
   getStationById,
   listStations,
+  listPublicStations,
   updateStation,
   type StationApi,
 } from "../../src/services/station-service";
@@ -213,5 +214,40 @@ describe("station-service (api) - Critérios de Aceitação: Cadastro, Edição,
 
     // Act + Assert
     await expect(listStations()).rejects.toThrow(/Request failed/);
+  });
+
+  // NOVO TESTE PARA A ROTA PÚBLICA
+  it("Critério de Acesso: Deve buscar a lista de estações públicas usando o endpoint /public", async () => {
+    // Arrange
+    const mockPublicStations: StationApi[] = [
+      {
+        id: 99,
+        name: "Estação Pública Teste",
+        address: "Praça Central",
+        latitude: "-23.0",
+        longitude: "-45.0",
+        idDatalogger: "PUB-01",
+        status: "Ativa",
+        isActive: true,
+        createdAt: "",
+        updatedAt: "",
+        createdBy: "",
+        updatedBy: "",
+      },
+    ];
+    mockFetchJsonOnce(mockPublicStations);
+
+    // Act
+    const data = await listPublicStations();
+
+    // Assert
+    expect(globalThis.fetch).toHaveBeenCalledOnce();
+    const [url, init] = getFetchMock().mock.calls[0]!;
+    
+    // Confirma que a URL chamada contém o sufixo /public
+    expect(String(url)).toContain("/stations/public");
+    expect(init?.method).toBe("GET");
+    expect(data).toHaveLength(1);
+    expect(data[0].nome).toBe("Estação Pública Teste");
   });
 });
