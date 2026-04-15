@@ -1,0 +1,236 @@
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { parameterService, type Parameter } from "@/services/parameter-service";
+import { fetchWeatherForStation } from "@/services/weather-service";
+import { stationParameterService } from "@/services/station-parameter-service";
+import DataTable from 'datatables.net-dt';
+import 'datatables.net-buttons-dt';
+import JSZip from 'jszip';
+import 'datatables.net-buttons/js/buttons.html5.mjs';
+import { listPublicStations } from "@/services/station-service";
+
+DataTable.Buttons.jszip(JSZip);
+
+const mockWeatherParameters = [
+    { id: 1, parametro: "Temperatura do Ar", valor: "26.4°C", dataHora: "2026-04-15 16:00" },
+    { id: 2, parametro: "Umidade Relativa", valor: "68%", dataHora: "2026-04-15 16:00" },
+    { id: 3, parametro: "Pressão Atmosférica", valor: "1012hPa", dataHora: "2026-04-15 16:00" },
+    { id: 4, parametro: "Velocidade do Vento", valor: "12km/h", dataHora: "2026-04-15 16:00" },
+    { id: 5, parametro: "Direção do Vento", valor: "NE", dataHora: "2026-04-15 16:00" },
+    { id: 6, parametro: "Precipitação", valor: "0.0mm", dataHora: "2026-04-15 16:00" },
+    { id: 7, parametro: "Radiação Solar", valor: "540W/m²", dataHora: "2026-04-15 16:00" },
+    { id: 8, parametro: "Índice UV", valor: "5", dataHora: "2026-04-15 16:00" },
+    { id: 9, parametro: "Ponto de Orvalho", valor: "19.8°C", dataHora: "2026-04-15 16:00" },
+    { id: 10, parametro: "Visibilidade", valor: "10km", dataHora: "2026-04-15 16:00" },
+    { id: 11, parametro: "Cobertura de Nuvens", valor: "42%", dataHora: "2026-04-15 16:00" }
+];
+
+export function WeatherTable() {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const tableRef = useRef<HTMLTableElement | null>(null);
+    const controlsHostRef = useRef<HTMLDivElement | null>(null);
+    const paginationHostRef = useRef<HTMLDivElement | null>(null);
+
+    const [stationName, setStationName] = useState<string>("");
+    const [stationParams, setStationParams] = useState<Parameter[]>([]);
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!tableRef.current) {
+            return;
+        }
+
+        const table = new DataTable(tableRef.current, {
+            pageLength: 10,
+            layout: {
+                topStart: {
+                    buttons: [
+                        {
+                            extend: 'csvHtml5',
+                            text: 'Exportar para CSV'
+                        },
+                        {
+                            extend: 'excelHtml5',
+                            text: 'Exportar para XLS'
+                        }
+                    ]
+                },
+                topEnd: {
+                    search: {
+                        placeholder: 'Procurar parâmetro'
+                    }
+                },
+                bottomStart: null,
+                bottomEnd: {
+                    paging: {
+                        firstLast: false
+                    }
+                }
+            },
+            language: {
+                search: '',
+                zeroRecords: 'Nenhum registro encontrado.'
+            },
+            columnDefs: [
+                { targets: [0, 1, 3, 4], searchable: false },
+                { targets: 2, searchable: true }
+            ]
+        });
+
+        const wrapper = table.table().container() as HTMLElement;
+        const layoutRows = wrapper.querySelectorAll<HTMLElement>(".dt-layout-row");
+        const topControlsRow = layoutRows[0] ?? null;
+        const bottomPagingRow = layoutRows[layoutRows.length - 1] ?? null;
+
+        const controlsHost = controlsHostRef.current;
+        const paginationHost = paginationHostRef.current;
+
+        if (controlsHost && topControlsRow) {
+            controlsHost.replaceChildren(topControlsRow);
+        }
+
+        if (paginationHost && bottomPagingRow) {
+            paginationHost.replaceChildren(bottomPagingRow);
+        }
+
+        return () => {
+            if (controlsHost) {
+                controlsHost.replaceChildren();
+            }
+            if (paginationHost) {
+                paginationHost.replaceChildren();
+            }
+            table.destroy();
+        };
+    }, []);
+
+    useEffect(() => {
+        let isMounted = true;
+        const stationId = id ? Number.parseInt(id, 10) : 1;
+
+        const loadDashboardData = async (backgroundRefresh = false) => {
+            if (!backgroundRefresh) {
+                setIsLoading(true);
+                setError(null);
+            }
+
+            try {
+                const [wData, allParams, stationLinks, publicStations] = await Promise.all([
+                    fetchWeatherForStation(stationId),
+                    parameterService.findAll(),
+                    stationParameterService.findByStation(stationId),
+                    listPublicStations()
+                ]);
+
+                if (!isMounted) return;
+
+                const activeParams = stationLinks
+                    .map((link) => allParams.find((p) => p.id === link.idTypeParam))
+                    .filter((p): p is Parameter => p !== undefined);
+
+                setStationParams(activeParams);
+
+                if (!wData && !backgroundRefresh) {
+                    setError("Não foi possível carregar os dados climáticos desta estação no OpenMeteo.");
+                }
+
+                const currentStation = publicStations.find(s => Number(s.id) === stationId);
+                if (currentStation) {
+                    setStationName(currentStation.nome);
+                }
+            } catch (err) {
+                console.error(err);
+                if (!backgroundRefresh) {
+                    setError("Erro ao carregar a estrutura da Tabela.");
+                }
+            } finally {
+                if (!backgroundRefresh && isMounted) {
+                    setIsLoading(false);
+                }
+            }
+        };
+
+        void loadDashboardData();
+        const intervalId = window.setInterval(() => {
+            void loadDashboardData(true);
+        }, 60_000);
+
+        return () => {
+            isMounted = false;
+            window.clearInterval(intervalId);
+        };
+    }, [id]);
+
+    return (
+        <div className="min-h-full flex flex-col bg-bg-dashboard">
+            <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => navigate("/admin/selecionar-estacao")}
+                            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
+                            aria-label="Voltar para seleção de estações"
+                        >
+                            <ArrowLeft size={24} />
+                        </button>
+                        <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
+                            {stationName ? stationName : (id ? `Tabela: Estação ${id}` : "Visão Geral")}
+                        </h2>
+                    </div>
+                    <span className="text-sm text-gray-500 font-medium flex items-center gap-2">
+                        {isLoading ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin" /> Atualizando...
+                            </>
+                        ) : (
+                            `Atualizado: ${new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`
+                        )}
+                    </span>
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100">
+                            {error}
+                        </div>
+                    )}
+                </div>
+                {!isLoading && stationParams.length === 0 ? (
+                    <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
+                        Esta estação não possui nenhum parâmetro atrelado a ela. Edite a estação para adicionar medições.
+                    </div>
+                ) : (
+                    <>
+                        <div ref={controlsHostRef} className="weather-table-controls mb-4" />
+                        <div className="weather-table-card bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+                            <table ref={tableRef} id="dataTable" className="w-full text-left border-collapse min-w-[720px]">
+                                <thead>
+                                    <tr className="border-b border-gray-50 last:border-0 transition-all">
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID</td>
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID da Estação</td>
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Parâmetro</td>
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Valor</td>
+                                        <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Data/hora</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {mockWeatherParameters.map((item) => (
+                                        <tr key={item.id} className="border-b border-gray-50 last:border-0 transition-all">
+                                            <td className="px-6 py-4 text-sm text-gray-700">{item.id}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700">{id}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700">{item.parametro}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700">{item.valor}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-700">{item.dataHora}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div ref={paginationHostRef} className="weather-table-pagination mt-4" />
+                    </>
+                )}
+            </main>
+        </div>
+    );
+}

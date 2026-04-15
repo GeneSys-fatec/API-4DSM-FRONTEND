@@ -30,7 +30,7 @@ export function TableBase<T>({
       <table className="w-full text-left border-collapse min-w-[600px]">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">#</th>
+            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID</th>
             {columns.map((column) => (
               <th
                 key={column.key}

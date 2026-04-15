@@ -57,7 +57,7 @@ export function PublicSidebar({ isOpen, closeMenu }: PublicSidebarProps) {
               {estacoesFiltradas.map((estacao) => (
                 <li key={estacao.id}>
                   <Link
-                    to={`/dashboard/${estacao.id}`}
+                    to={`/weather-datas/${estacao.id}`}
                     onClick={closeMenu}
                     className={`block px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       currentStationId === estacao.id

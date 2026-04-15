@@ -10,8 +10,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "react-toastify";
-import { WeatherCard } from "../components/WeatherCard";
-import { DashboardChart, type PeriodoTempo } from "../components/DashboardChart";
+import { WeatherCard } from "./WeatherCard";
+import { DashboardChart, type PeriodoTempo } from "./DashboardChart";
 import { fetchWeatherForStation, type WeatherData } from "../services/weather-service";
 import { parameterService, type Parameter } from "../services/parameter-service";
 import { stationParameterService } from "../services/station-parameter-service";
