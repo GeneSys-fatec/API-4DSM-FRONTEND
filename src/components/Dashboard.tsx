@@ -261,12 +261,12 @@ export function Dashboard() {
         {/* GRÁFICO */}
         {parametroAtivo && (
           <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-[400px] md:h-[450px]">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0">
                 Gráfico de {parametroAtivo.name}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end sm:ml-auto">
                 <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
                   {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map((periodo) => (
                     <button
@@ -286,7 +286,7 @@ export function Dashboard() {
                 </div>
 
                 {periodoAtivo === "custom" ? (
-                  <div className="flex flex-wrap items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                  <div className="flex flex-nowrap items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto overflow-x-auto">
                     <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
                       De:
                       <input
@@ -307,17 +307,15 @@ export function Dashboard() {
                         className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
                       />
                     </label>
-                  </div>
-                ) : null}
 
-                {periodoAtivo === "custom" ? (
-                  <button
-                    className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-                    onClick={clearPeriodFilters}
-                    title="Limpar filtros"
-                  >
-                    <X size={18} />
-                  </button>
+                    <button
+                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
+                      onClick={clearPeriodFilters}
+                      title="Limpar filtros"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
                 ) : null}
               </div>
             </div>
