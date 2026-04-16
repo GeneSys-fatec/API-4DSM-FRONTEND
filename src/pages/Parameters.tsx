@@ -11,14 +11,10 @@ const PARAMETER_FILTERS_STORAGE_KEY = "@ClimaSense:filters:parameter-types";
 
 type ParameterFiltersState = {
     q: string;
-    from: string;
-    to: string;
 };
 
 const DEFAULT_FILTERS: ParameterFiltersState = {
     q: "",
-    from: "",
-    to: "",
 };
 
 export interface Parameter {
@@ -79,8 +75,6 @@ export function Parameters() {
         const fetchParams = async () => {
             const data = await parameterService.findAll({
                 q: filters.q,
-                from: filters.from,
-                to: filters.to,
             });
 
             if (isMounted) {
@@ -93,7 +87,7 @@ export function Parameters() {
         return () => {
             isMounted = false;
         };
-    }, [filters.from, filters.q, filters.to, reloadKey]);
+    }, [filters.q, reloadKey]);
 
     useEffect(() => {
         persistFilters(PARAMETER_FILTERS_STORAGE_KEY, filters);
@@ -139,22 +133,22 @@ export function Parameters() {
         setParameterToDelete(null);
     };
 
-    const hasActiveFilters = Boolean(filters.q.trim() || filters.from || filters.to);
+    const hasActiveFilters = Boolean(filters.q.trim());
 
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 mb-8">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
                     Parâmetros cadastrados
                 </h1>
-                <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                    <div className="relative w-full md:w-72">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full md:w-auto md:ml-auto">
+                    <div className="relative w-full md:w-[320px]">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
                         <input
                             type="text"
-                            placeholder="Buscar parâmetro"
+                            placeholder="Buscar por parâmetro, key ou unidade"
                             value={filters.q}
                             onChange={(event) =>
                                 setFilters((prev) => ({
@@ -165,40 +159,14 @@ export function Parameters() {
                             className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
                         />
                     </div>
-                    <input
-                        type="date"
-                        value={filters.from}
-                        onChange={(event) =>
-                            setFilters((prev) => ({
-                                ...prev,
-                                from: event.target.value,
-                            }))
-                        }
-                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
-                    />
-                    <input
-                        type="date"
-                        value={filters.to}
-                        onChange={(event) =>
-                            setFilters((prev) => ({
-                                ...prev,
-                                to: event.target.value,
-                            }))
-                        }
-                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
-                    />
                     <button
                         type="button"
-                        className="bg-gray-100 text-gray-700 font-semibold text-sm hidden md:flex self-end p-2 px-3 gap-2 hover:bg-gray-200 cursor-pointer rounded-md"
-                        onClick={() => setFilters(DEFAULT_FILTERS)}
+                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md"
+                        onClick={openCreateModal}
                     >
-                        Limpar filtros
+                        Cadastrar parâmetro
                     </button>
                 </div>
-                <button type="button" className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex self-end p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md"
-                    onClick={openCreateModal}>
-                    Cadastrar parâmetro
-                </button>
             </div>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {parameters.length > 0 ? (

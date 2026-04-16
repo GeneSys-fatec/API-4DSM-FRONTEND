@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Settings2,
   Edit2,
   Trash2,
-  ArrowUpDown,
   Filter,
 } from "lucide-react";
 import { TableBase, type TableColumn } from "../components/TableBody";
@@ -24,9 +23,6 @@ import { ParameterByStation } from "@/components/ParameterByStation";
 import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
 
 const STATION_FILTERS_STORAGE_KEY = "@ClimaSense:filters:stations";
-const STATION_COLUMNS_STORAGE_KEY = "@ClimaSense:columns:stations";
-
-type StationColumnKey = "nome" | "cidade" | "codigo" | "isActive";
 
 type StationFiltersState = {
   q: string;
@@ -36,13 +32,6 @@ type StationFiltersState = {
 const DEFAULT_FILTERS: StationFiltersState = {
   q: "",
   status: "",
-};
-
-const DEFAULT_VISIBLE_COLUMNS: Record<StationColumnKey, boolean> = {
-  nome: true,
-  cidade: true,
-  codigo: true,
-  isActive: true,
 };
 
 export function StationManage() {
@@ -80,11 +69,6 @@ export function StationManage() {
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
   const [limitsTarget, setLimitsTarget] = useState<Station | null>(null);
-  const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState<Record<StationColumnKey, boolean>>(() =>
-    loadStoredFilters(STATION_COLUMNS_STORAGE_KEY, DEFAULT_VISIBLE_COLUMNS),
-  );
-  const columnMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Station | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -139,25 +123,6 @@ export function StationManage() {
     persistFilters(STATION_FILTERS_STORAGE_KEY, filters);
   }, [filters]);
 
-  useEffect(() => {
-    persistFilters(STATION_COLUMNS_STORAGE_KEY, visibleColumns);
-  }, [visibleColumns]);
-
-  useEffect(() => {
-    if (!isColumnMenuOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      if (!columnMenuRef.current?.contains(event.target as Node)) {
-        setIsColumnMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isColumnMenuOpen]);
-
   const colunasDaTabela: TableColumn<Station>[] = [
     {
       key: "nome",
@@ -198,24 +163,6 @@ export function StationManage() {
     },
   ];
 
-  const colunasVisiveis = useMemo(() => {
-    return colunasDaTabela.filter((column) => visibleColumns[column.key as StationColumnKey]);
-  }, [colunasDaTabela, visibleColumns]);
-
-  const toggleColumnVisibility = (columnKey: StationColumnKey) => {
-    setVisibleColumns((prev) => {
-      const visibleCount = Object.values(prev).filter(Boolean).length;
-      if (prev[columnKey] && visibleCount === 1) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [columnKey]: !prev[columnKey],
-      };
-    });
-  };
-
   return (
     <div className="p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
@@ -224,39 +171,6 @@ export function StationManage() {
         </h1>
 
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          <div className="relative" ref={columnMenuRef}>
-            <button
-              onClick={() => setIsColumnMenuOpen((prev) => !prev)}
-              className="flex items-center justify-between gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors"
-            >
-              Select column
-              <ArrowUpDown size={14} className="text-gray-400" />
-            </button>
-
-            {isColumnMenuOpen ? (
-              <div className="absolute right-0 mt-2 w-52 rounded-lg border border-gray-200 bg-white shadow-lg z-20 p-2">
-                {[
-                  { key: "nome", label: "Nome" },
-                  { key: "cidade", label: "Cidade" },
-                  { key: "codigo", label: "Código" },
-                  { key: "isActive", label: "Status" },
-                ].map((option) => (
-                  <label
-                    key={option.key}
-                    className="flex items-center gap-2 px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={visibleColumns[option.key as StationColumnKey]}
-                      onChange={() => toggleColumnVisibility(option.key as StationColumnKey)}
-                      className="accent-tecsus-green"
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            ) : null}
-          </div>
 
           <div className="relative w-full sm:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -327,7 +241,7 @@ export function StationManage() {
           ) : (
             <TableBase
               data={estacoes}
-              columns={colunasVisiveis}
+              columns={colunasDaTabela}
               rowClassName="hover:bg-gray-50/50"
               renderActions={(item) => (
                 <div className="flex justify-end gap-4">

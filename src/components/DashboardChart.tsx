@@ -4,52 +4,107 @@ import { Loader2 } from "lucide-react";
 import type { Parameter } from "../services/parameter-service";
 import type { WeatherHourlyData } from "../services/weather-service";
 
-export type PeriodoTempo = "24h" | "7d" | "30d";
+export type PeriodoTempo = "24h" | "7d" | "30d" | "custom";
 
 interface DashboardChartProps {
   parametro: Parameter | null;
   periodo: PeriodoTempo;
   dadosHistoricos: WeatherHourlyData | null;
+  customRange?: {
+    from?: string;
+    to?: string;
+  };
 }
 
 type ChartData = {
   categories: string[];
-  data: number[];
+  data: Array<number | null>;
 };
 
 export function DashboardChart({
   parametro,
   periodo,
   dadosHistoricos,
+  customRange,
 }: DashboardChartProps) {
+  const getHourKey = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const hour = String(date.getHours()).padStart(2, "0");
+
+    return `${year}-${month}-${day}-${hour}`;
+  };
+
   const processarDadosDaAPI = (): ChartData => {
     if (!dadosHistoricos || !dadosHistoricos.time || !parametro) {
       return { categories: [], data: [] };
     }
-    const targetKey = parametro.json_key; 
-    
-    let horasParaPegar = 24;
-    if (periodo === "7d") horasParaPegar = 24 * 7;
-    if (periodo === "30d") horasParaPegar = 24 * 30;
+    const targetKey = parametro.json_key;
+    const rawSeries = Array.isArray(dadosHistoricos[targetKey])
+      ? (dadosHistoricos[targetKey] as Array<number | string>)
+      : [];
 
-    const rawTimes = dadosHistoricos.time.slice(-horasParaPegar);
+    const allPoints = dadosHistoricos.time.map((isoString: string, index: number) => ({
+      date: new Date(isoString),
+      value: Number(rawSeries[index]),
+    }));
 
-    const rawSeries = dadosHistoricos[targetKey] ?? [];
-    const rawData = rawSeries
-      .slice(-horasParaPegar)
-      .map((value) => Number(value))
-      .filter((value) => Number.isFinite(value));
+    const validPoints = allPoints.filter(
+      (point) => Number.isFinite(point.date.getTime()) && Number.isFinite(point.value),
+    );
 
-    const categories = rawTimes.map((isoString: string) => {
-      const date = new Date(isoString);
-      if (periodo === "24h") {
+    let selectedPoints: Array<{ date: Date; value: number | null }> = validPoints;
+
+    if (periodo === "custom") {
+      const fromDate = customRange?.from ? new Date(`${customRange.from}T00:00:00`) : null;
+      const toDate = customRange?.to ? new Date(`${customRange.to}T23:00:00`) : null;
+
+      if (fromDate && toDate && Number.isFinite(fromDate.getTime()) && Number.isFinite(toDate.getTime()) && fromDate <= toDate) {
+        const valueByHour = new Map<string, number>();
+        for (const point of validPoints) {
+          valueByHour.set(getHourKey(point.date), point.value);
+        }
+
+        selectedPoints = [];
+        const cursor = new Date(fromDate);
+        while (cursor <= toDate) {
+          const key = getHourKey(cursor);
+          selectedPoints.push({
+            date: new Date(cursor),
+            value: valueByHour.get(key) ?? null,
+          });
+          cursor.setHours(cursor.getHours() + 1);
+        }
+      } else {
+        selectedPoints = validPoints;
+      }
+    } else {
+      let horasParaPegar = 24;
+      if (periodo === "7d") horasParaPegar = 24 * 7;
+      if (periodo === "30d") horasParaPegar = 24 * 30;
+
+      selectedPoints = validPoints.slice(-horasParaPegar);
+    }
+
+    const isSingleDayCustomRange =
+      periodo === "custom" &&
+      customRange?.from &&
+      customRange?.to &&
+      customRange.from === customRange.to;
+
+    const categories = selectedPoints.map((point) => {
+      const date = point.date;
+      if (periodo === "24h" || isSingleDayCustomRange) {
         return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       } else {
         return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       }
     });
 
-    return { categories, data: rawData };
+    const data = selectedPoints.map((point) => point.value);
+
+    return { categories, data };
   };
 
   const getChartConfig = () => {
@@ -83,7 +138,7 @@ export function DashboardChart({
         categories: currentData.categories,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        tickAmount: periodo === "24h" ? 6 : periodo === "7d" ? 7 : 10,
+        tickAmount: periodo === "24h" ? 6 : periodo === "7d" ? 7 : periodo === "30d" ? 10 : 8,
         labels: { hideOverlappingLabels: true, style: { colors: "#9ca3af", fontSize: "12px", fontWeight: 500 } },
       },
       yaxis: {
@@ -123,7 +178,11 @@ export function DashboardChart({
   const { options, series } = getChartConfig();
 
   
-  if (series[0].data.length === 0) {
+  const hasAnyNumericPoint = series[0].data.some(
+    (value) => typeof value === "number" && Number.isFinite(value),
+  );
+
+  if (series[0].data.length === 0 || !hasAnyNumericPoint) {
       return (
         <div className="w-full h-full min-h-[300px] flex justify-center items-center text-gray-400">
            <span className="text-sm">Sem dados históricos para este parâmetro.</span>

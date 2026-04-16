@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface GeneratedAlertApi {
   id: number;
@@ -24,6 +24,11 @@ export interface WeatherData {
 }
 
 export type WeatherResponse = WeatherData;
+
+export interface WeatherRangeOptions {
+  from?: string;
+  to?: string;
+}
 
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -106,9 +111,15 @@ function normalizeWeatherResponse(payload: unknown): WeatherData {
 
 export const fetchWeatherForStation = async (
   stationId: number,
+  options?: WeatherRangeOptions,
 ): Promise<WeatherData | null> => {
   try {
-    const response = await apiFetch(`/weather/public/${stationId}`, {
+    const queryString = buildQueryString({
+      from: options?.from,
+      to: options?.to,
+    });
+
+    const response = await apiFetch(`/weather/public/${stationId}${queryString}`, {
       headers: {
         Accept: "application/json",
       },

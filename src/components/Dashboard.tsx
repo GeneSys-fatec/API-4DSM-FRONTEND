@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
-  Search,
+  Filter,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
@@ -33,42 +33,55 @@ export function Dashboard() {
   const location = useLocation(); 
   const { id } = useParams();
   const { registerGeneratedAlerts } = useAlertNotifications();
-<<<<<<< HEAD:src/components/Dashboard.tsx
+  const stationId = id ? Number.parseInt(id, 10) : 1;
+  const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
+
   const [stationName, setStationName] = useState<string>(""); 
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
-=======
-  const stationId = id ? Number.parseInt(id, 10) : 1;
-  const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
 
-  const [stationParams, setStationParams] = useState<Parameter[]>([]);
-  const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
-  const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
-  const [parameterQuery, setParameterQuery] = useState("");
-  
->>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema):src/pages/Dashboard.tsx
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isAdminRoute = location.pathname.includes('/admin');
 
+  const isCustomRangeInvalid = Boolean(
+    periodoAtivo === "custom" &&
+    customFrom &&
+    customTo &&
+    customFrom > customTo,
+  );
+
+  const parseStoredPeriodo = (value: unknown): PeriodoTempo => {
+    if (value === "24h" || value === "7d" || value === "30d" || value === "custom") {
+      return value;
+    }
+
+    return "24h";
+  };
+
   useEffect(() => {
     const stored = loadStoredFilters(dashboardFiltersStorageKey, {
       periodoAtivo: "24h" as PeriodoTempo,
-      parameterQuery: "",
+      customFrom: "",
+      customTo: "",
     });
 
-    setPeriodoAtivo(stored.periodoAtivo);
-    setParameterQuery(stored.parameterQuery);
+    setPeriodoAtivo(parseStoredPeriodo(stored.periodoAtivo));
+    setCustomFrom(stored.customFrom ?? "");
+    setCustomTo(stored.customTo ?? "");
   }, [dashboardFiltersStorageKey]);
 
   useEffect(() => {
     persistFilters(dashboardFiltersStorageKey, {
       periodoAtivo,
-      parameterQuery,
+      customFrom,
+      customTo,
     });
-  }, [dashboardFiltersStorageKey, periodoAtivo, parameterQuery]);
+  }, [dashboardFiltersStorageKey, periodoAtivo, customFrom, customTo]);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,17 +118,16 @@ export function Dashboard() {
       }
 
       try {
-        
+        const weatherRange =
+          periodoAtivo === "custom" && customFrom && customTo && !isCustomRangeInvalid
+            ? { from: customFrom, to: customTo }
+            : undefined;
+
         const [wData, allParams, stationLinks, publicStations] = await Promise.all([
-          fetchWeatherForStation(stationId),
-<<<<<<< HEAD:src/components/Dashboard.tsx
+          fetchWeatherForStation(stationId, weatherRange),
           parameterService.findAll(),
           stationParameterService.findByStation(stationId),
-          listPublicStations()
-=======
-          parameterService.findAll({ q: parameterQuery }),
-          stationParameterService.findByStation(stationId, { q: parameterQuery }),
->>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema):src/pages/Dashboard.tsx
+          listPublicStations(),
         ]);
 
         if (!isMounted) return;
@@ -167,13 +179,19 @@ export function Dashboard() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [parameterQuery, registerGeneratedAlerts, stationId]);
+  }, [registerGeneratedAlerts, stationId, periodoAtivo, customFrom, customTo, isCustomRangeInvalid]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
     return periodoAtivo === periodo
       ? baseClass + "bg-tecsus-green text-white shadow-sm"
       : baseClass + "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
+  };
+
+  const clearPeriodFilters = () => {
+    setPeriodoAtivo("24h");
+    setCustomFrom("");
+    setCustomTo("");
   };
 
   return (
@@ -206,29 +224,6 @@ export function Dashboard() {
           </span>
         </div>
 
-        <div className="flex flex-wrap gap-3 mb-6">
-          <div className="relative w-full md:w-80">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Filtrar parâmetros por nome ou chave"
-              value={parameterQuery}
-              onChange={(event) => setParameterQuery(event.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
-            />
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setParameterQuery("")}
-            className="bg-gray-100 text-gray-700 font-semibold text-sm p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md"
-          >
-            Limpar filtro
-          </button>
-        </div>
-
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6 border border-red-100">
             {error}
@@ -237,9 +232,7 @@ export function Dashboard() {
 
         {!isLoading && stationParams.length === 0 ? (
            <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
-              {parameterQuery.trim()
-               ? "Nenhum parâmetro encontrado para o filtro informado."
-               : "Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições."}
+              {"Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições."}
            </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">
@@ -273,28 +266,77 @@ export function Dashboard() {
                 Gráfico de {parametroAtivo.name}
               </h3>
 
-              <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
-                {(["24h", "7d", "30d"] as PeriodoTempo[]).map((periodo) => (
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:ml-auto">
+                <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                  {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map((periodo) => (
+                    <button
+                      key={periodo}
+                      onClick={() => setPeriodoAtivo(periodo)}
+                      className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                    >
+                      {periodo === "24h"
+                        ? "Últimas 24h"
+                        : periodo === "7d"
+                          ? "7 dias"
+                          : periodo === "30d"
+                            ? "30 dias"
+                            : "Personalizado"}
+                    </button>
+                  ))}
+                </div>
+
+                {periodoAtivo === "custom" ? (
+                  <div className="flex flex-wrap items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                    <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                      De:
+                      <input
+                        type="date"
+                        value={customFrom}
+                        max={customTo || undefined}
+                        onChange={(event) => setCustomFrom(event.target.value)}
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                      />
+                    </label>
+                    <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                      Até:
+                      <input
+                        type="date"
+                        value={customTo}
+                        min={customFrom || undefined}
+                        onChange={(event) => setCustomTo(event.target.value)}
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                      />
+                    </label>
+                  </div>
+                ) : null}
+
+                {periodoAtivo === "custom" ? (
                   <button
-                    key={periodo}
-                    onClick={() => setPeriodoAtivo(periodo)}
-                    className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                    className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                    onClick={clearPeriodFilters}
+                    title="Limpar filtros"
                   >
-                    {periodo === "24h"
-                      ? "Últimas 24h"
-                      : periodo === "7d"
-                        ? "7 dias"
-                        : "30 dias"}
+                    <Filter size={18} />
                   </button>
-                ))}
+                ) : null}
               </div>
             </div>
+
+            {isCustomRangeInvalid ? (
+              <p className="text-xs text-red-500 mt-1">
+                O período personalizado está inválido. A data final deve ser maior ou igual à inicial.
+              </p>
+            ) : null}
 
             <div className="flex-1 w-full min-h-0 pb-4">
               <DashboardChart 
                 parametro={parametroAtivo} 
                 periodo={periodoAtivo} 
                 dadosHistoricos={weatherData ? weatherData.hourly : null}
+                customRange={{
+                  from: customFrom,
+                  to: customTo,
+                }}
               />
             </div>
           </div>
