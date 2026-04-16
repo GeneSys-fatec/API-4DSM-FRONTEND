@@ -39,7 +39,7 @@ export function PublicHome() {
         const fallbackStation = stations.find(s => s.cidade.includes("São José dos Campos")) || stations[0];
 
         if (!navigator.geolocation) {
-          navigate(`/dashboard/${fallbackStation.id}`, { replace: true });
+          navigate(`/weather-datas/${fallbackStation.id}`, { replace: true });
           return;
         }
 
@@ -65,13 +65,13 @@ export function PublicHome() {
               }
             });
 
-            navigate(`/dashboard/${closestStation.id}`, { replace: true });
+            navigate(`/weather-datas/${closestStation.id}`, { replace: true });
           },
           (error) => {
             
             console.warn("Geolocalização negada/falhou, usando fallback:", error);
             if (isMounted) {
-                navigate(`/dashboard/${fallbackStation.id}`, { replace: true });
+                navigate(`/weather-datas/${fallbackStation.id}`, { replace: true });
             }
           },
           

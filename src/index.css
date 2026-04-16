@@ -22,3 +22,172 @@ body {
 .apexcharts-canvas *:focus {
   outline: none !important;
 }
+
+.weather-table-card #dataTable_wrapper {
+  padding: 1rem;
+}
+
+.weather-table-controls .dt-layout-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.weather-table-controls .dt-layout-start,
+.weather-table-controls .dt-layout-end {
+  display: flex;
+  align-items: center;
+}
+
+.weather-table-controls .dt-layout-start {
+  margin-right: auto;
+}
+
+.weather-table-controls .dt-buttons {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.weather-table-controls .dt-button {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-tecsus-green);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s;
+}
+
+.weather-table-controls .dt-button:hover {
+  opacity: 0.9;
+}
+
+.weather-table-controls .dt-search {
+  position: relative;
+  width: 100%;
+  max-width: 16rem;
+  flex-shrink: 0;
+}
+
+.weather-table-controls .dt-search::before {
+  content: "";
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  transform: translateY(-50%);
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%239ca3af' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+}
+
+.weather-table-controls .dt-search label {
+  display: none;
+}
+
+.weather-table-controls .dt-search input {
+  margin: 0;
+  width: 100%;
+  padding: 0.5rem 1rem 0.5rem 2.25rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  background-color: #fff;
+}
+
+.weather-table-controls .dt-search input:focus {
+  outline: none;
+  border-color: var(--color-tecsus-green);
+  box-shadow: 0 0 0 1px var(--color-tecsus-green);
+}
+
+.dt-empty {
+  text-align: center;
+  padding: 2rem;
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.weather-table-pagination .dt-info {
+  display: none;
+}
+
+.weather-table-pagination .dt-layout-row {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+.weather-table-pagination .dt-layout-end,
+.weather-table-pagination .dt-layout-cell {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.weather-table-pagination .dt-paging {
+  justify-content: center;
+  margin: 0;
+}
+
+.weather-table-pagination .dt-paging {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.weather-table-pagination .dt-paging-button {
+  margin: 0;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(0, 100, 0, 0.3);
+  background: #fff;
+  color: var(--color-tecsus-green);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.weather-table-pagination .dt-paging-button:hover {
+  background: rgba(0, 100, 0, 0.1);
+}
+
+.weather-table-pagination .dt-paging-button.current {
+  border-color: var(--color-tecsus-green);
+  background: var(--color-tecsus-green);
+  color: #fff;
+}
+
+.weather-table-pagination .dt-paging-button.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .weather-table-controls .dt-layout-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .weather-table-controls .dt-layout-start,
+  .weather-table-controls .dt-layout-end,
+  .weather-table-controls .dt-search {
+    width: 100%;
+    max-width: none;
+  }
+}
