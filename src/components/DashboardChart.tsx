@@ -19,6 +19,7 @@ interface DashboardChartProps {
 type ChartData = {
   categories: string[];
   data: Array<number | null>;
+  customRangeNotice?: string;
 };
 
 export function DashboardChart({
@@ -27,6 +28,25 @@ export function DashboardChart({
   dadosHistoricos,
   customRange,
 }: DashboardChartProps) {
+  const formatDateTimeLabel = (date: Date): string =>
+    date.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const formatNoticeRange = (from: Date, to: Date): string =>
+    `${formatDateTimeLabel(from)} até ${formatDateTimeLabel(to)}`;
+
+  const getCustomTickAmount = (pointCount: number): number => {
+    if (pointCount <= 24) return 6;
+    if (pointCount <= 24 * 3) return 8;
+    if (pointCount <= 24 * 10) return 10;
+    return 12;
+  };
+
   const getHourKey = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -55,20 +75,51 @@ export function DashboardChart({
     );
 
     let selectedPoints: Array<{ date: Date; value: number | null }> = validPoints;
+    let customRangeNotice: string | undefined;
+
+    const availableMinDate = validPoints.length > 0
+      ? new Date(Math.min(...validPoints.map((point) => point.date.getTime())))
+      : null;
+    const availableMaxDate = validPoints.length > 0
+      ? new Date(Math.max(...validPoints.map((point) => point.date.getTime())))
+      : null;
 
     if (periodo === "custom") {
       const fromDate = customRange?.from ? new Date(`${customRange.from}T00:00:00`) : null;
       const toDate = customRange?.to ? new Date(`${customRange.to}T23:00:00`) : null;
 
       if (fromDate && toDate && Number.isFinite(fromDate.getTime()) && Number.isFinite(toDate.getTime()) && fromDate <= toDate) {
+        if (!availableMinDate || !availableMaxDate) {
+          return {
+            categories: [],
+            data: [],
+              customRangeNotice: "Nao encontramos dados para esse período. Tente selecionar datas mais recentes.",
+          };
+        }
+
+        const effectiveFrom = fromDate < availableMinDate ? availableMinDate : fromDate;
+        const effectiveTo = toDate > availableMaxDate ? availableMaxDate : toDate;
+
+        if (effectiveFrom > effectiveTo) {
+          return {
+            categories: [],
+            data: [],
+              customRangeNotice: `Nao ha dados dentro do intervalo informado. Faixa disponivel: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`,
+          };
+        }
+
+        if (fromDate < availableMinDate || toDate > availableMaxDate) {
+            customRangeNotice = `Ajustamos o grafico para a faixa com dados disponiveis: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`;
+        }
+
         const valueByHour = new Map<string, number>();
         for (const point of validPoints) {
           valueByHour.set(getHourKey(point.date), point.value);
         }
 
         selectedPoints = [];
-        const cursor = new Date(fromDate);
-        while (cursor <= toDate) {
+        const cursor = new Date(effectiveFrom);
+        while (cursor <= effectiveTo) {
           const key = getHourKey(cursor);
           selectedPoints.push({
             date: new Date(cursor),
@@ -97,6 +148,27 @@ export function DashboardChart({
       const date = point.date;
       if (periodo === "24h" || isSingleDayCustomRange) {
         return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+      }
+
+      if (periodo === "custom") {
+        if (selectedPoints.length <= 48) {
+          return date.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        }
+
+        if (selectedPoints.length <= 24 * 10) {
+          return date.toLocaleString("pt-BR", {
+            day: "2-digit",
+            month: "2-digit",
+            hour: "2-digit",
+          });
+        }
+
+        return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       } else {
         return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
       }
@@ -104,11 +176,10 @@ export function DashboardChart({
 
     const data = selectedPoints.map((point) => point.value);
 
-    return { categories, data };
+    return { categories, data, customRangeNotice };
   };
 
-  const getChartConfig = () => {
-    const currentData = processarDadosDaAPI();
+  const getChartConfig = (currentData: ChartData) => {
     const jsonKey = parametro?.json_key || "";
     const yAxisFormat = parametro?.unit || "";
 
@@ -138,7 +209,14 @@ export function DashboardChart({
         categories: currentData.categories,
         axisBorder: { show: false },
         axisTicks: { show: false },
-        tickAmount: periodo === "24h" ? 6 : periodo === "7d" ? 7 : periodo === "30d" ? 10 : 8,
+        tickAmount:
+          periodo === "24h"
+            ? 6
+            : periodo === "7d"
+              ? 7
+              : periodo === "30d"
+                ? 10
+                : getCustomTickAmount(currentData.categories.length),
         labels: { hideOverlappingLabels: true, style: { colors: "#9ca3af", fontSize: "12px", fontWeight: 500 } },
       },
       yaxis: {
@@ -175,7 +253,8 @@ export function DashboardChart({
     );
   }
 
-  const { options, series } = getChartConfig();
+  const currentData = processarDadosDaAPI();
+  const { options, series } = getChartConfig(currentData);
 
   
   const hasAnyNumericPoint = series[0].data.some(
@@ -192,6 +271,9 @@ export function DashboardChart({
 
   return (
     <div className="w-full h-full min-h-[300px]">
+      {periodo === "custom" && currentData.customRangeNotice ? (
+        <p className="mb-2 text-xs text-amber-600">{currentData.customRangeNotice}</p>
+      ) : null}
       <Chart options={options} series={series} type="area" height="100%" />
     </div>
   );

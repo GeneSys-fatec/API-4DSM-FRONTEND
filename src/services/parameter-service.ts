@@ -28,17 +28,13 @@ export interface ParameterListFilters {
 export const parameterService = {
     findAll: async (filters?: ParameterListFilters): Promise<Parameter[]> => {
         try {
-<<<<<<< HEAD
-            const response = await apiFetch(`/parameter-types/public`);
-=======
             const queryString = buildQueryString({
                 q: filters?.q,
                 from: filters?.from,
                 to: filters?.to,
             });
 
-            const response = await apiFetch(`/parameter-types${queryString}`);
->>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema)
+            const response = await apiFetch(`/parameter-types/public${queryString}`);
 
             if (!response.ok) {
                 throw new Error("Erro ao buscar parâmetros");

@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
-  Filter,
+  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
@@ -316,7 +316,7 @@ export function Dashboard() {
                     onClick={clearPeriodFilters}
                     title="Limpar filtros"
                   >
-                    <Filter size={18} />
+                    <X size={18} />
                   </button>
                 ) : null}
               </div>

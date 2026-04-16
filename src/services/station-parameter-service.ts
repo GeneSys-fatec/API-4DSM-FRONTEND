@@ -24,9 +24,6 @@ export interface StationParameterFilters {
 export const stationParameterService = {
     findByStation: async (idStation: number, filters?: StationParameterFilters): Promise<StationParameter[]> => {
         try {
-<<<<<<< HEAD
-            const response = await apiFetch(`/parameters/public/station/${idStation}`);
-=======
             const queryString = buildQueryString({
                 q: filters?.q,
                 idTypeParam: filters?.idTypeParam,
@@ -34,8 +31,7 @@ export const stationParameterService = {
                 to: filters?.to,
             });
 
-            const response = await apiFetch(`/parameters/station/${idStation}${queryString}`);
->>>>>>> 5148cff (feat[GEN-43]: Implementa filtros e busca no sistema)
+            const response = await apiFetch(`/parameters/public/station/${idStation}${queryString}`);
             if (!response.ok) {
                 console.error("Erro no GET findByStation:", await response.text());
                 throw new Error("Erro ao buscar parâmetros da estação");

@@ -29,7 +29,7 @@ describe('Parameter Service (Frontend)', () => {
 
     expect(globalThis.fetch).toHaveBeenCalledOnce();
     const [url] = getFetchMock().mock.calls[0];
-    expect(String(url)).toContain('/parameter-types');
+    expect(String(url)).toContain('/parameter-types/public');
     expect(result).toEqual(mockParams);
   });
 
@@ -58,7 +58,7 @@ describe('Parameter Service (Frontend)', () => {
     await parameterService.findAll({ q: 'temp' });
 
     const [url] = getFetchMock().mock.calls[0];
-    expect(String(url)).toContain('/parameter-types?');
+    expect(String(url)).toContain('/parameter-types/public?');
     expect(String(url)).toContain('q=temp');
   });
 });
