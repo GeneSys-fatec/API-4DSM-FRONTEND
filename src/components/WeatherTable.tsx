@@ -145,7 +145,7 @@ export function WeatherTable() {
             },
             language: {
                 search: '',
-                zeroRecords: 'Nenhum registro encontrado.'
+                zeroRecords: 'Não encontramos dados para o intervalo selecionado. Tente ajustar as datas para visualizar os registros.'
             },
             columnDefs: [
                 { targets: [0, 1, 3, 4], searchable: false },
@@ -340,12 +340,6 @@ export function WeatherTable() {
                         {isInvalidExportRange ? (
                             <p className="mb-3 text-xs text-red-500">
                                 O período selecionado está inválido. A data final deve ser maior ou igual à inicial.
-                            </p>
-                        ) : null}
-
-                        {(fromDate || toDate) && !isInvalidExportRange && filteredRowsCount === 0 ? (
-                            <p className="mb-3 text-sm text-gray-500">
-                                Não encontramos dados para o intervalo selecionado. Tente ajustar as datas para visualizar os registros.
                             </p>
                         ) : null}
 

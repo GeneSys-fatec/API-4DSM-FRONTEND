@@ -161,7 +161,7 @@ export function Parameters() {
                     </div>
                     <button
                         type="button"
-                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md"
+                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
                         onClick={openCreateModal}
                     >
                         Cadastrar parâmetro

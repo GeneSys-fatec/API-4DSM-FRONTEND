@@ -215,7 +215,7 @@ export function StationManage() {
 
           <button
             onClick={createModal.open}
-            className="flex items-center gap-2 bg-tecsus-green text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all shadow-sm"
+            className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
           >
             Cadastrar estação
           </button>
