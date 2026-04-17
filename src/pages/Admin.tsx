@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Trash2, Pencil, Search } from "lucide-react";
+import { Trash2, Pencil, Search, Filter } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { type Administrator, administratorService } from "../services/administrator-services";
 import { CreateAdminModal } from "../components/CreateAdminModal";
@@ -129,13 +129,13 @@ export function Admin() {
 
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-8">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
                     Administradores cadastrados
                 </h1>
 
-                <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                    <div className="relative w-full md:w-72">
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                    <div className="relative w-full sm:w-64 shrink-0">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
@@ -170,20 +170,21 @@ export function Admin() {
 
                     <button
                         type="button"
-                        className="bg-gray-100 text-gray-700 font-semibold text-sm hidden md:flex self-end p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md"
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
                         onClick={() => setFilters(DEFAULT_FILTERS)}
+                        title="Limpar filtros"
                     >
-                        Limpar filtros
+                        <Filter size={18} />
+                    </button>
+
+                    <button
+                        type="button"
+                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
+                        onClick={openCreateModal}
+                    >
+                        Cadastrar administrador
                     </button>
                 </div>
-
-                <button
-                    type="button"
-                    className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex self-end p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
-                    onClick={openCreateModal}
-                >
-                    Cadastrar administrador
-                </button>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

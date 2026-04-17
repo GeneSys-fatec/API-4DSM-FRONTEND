@@ -1,4 +1,4 @@
-import { ArrowLeft, Filter, Loader2, X } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parameterService, type Parameter } from "@/services/parameter-service";
@@ -9,79 +9,10 @@ import 'datatables.net-buttons-dt';
 import JSZip from 'jszip';
 import 'datatables.net-buttons/js/buttons.html5.mjs';
 import { listPublicStations } from "@/services/station-service";
-import { toast } from "react-toastify";
 import { createPortal } from "react-dom";
+import { shouldIncludeRowByDate, type ExportDateRange } from "./weatherTableDateFilter";
 
 DataTable.Buttons.jszip(JSZip);
-
-interface ExportDateRange {
-    from?: string;
-    to?: string;
-}
-
-function parseRowDateTime(value: unknown): Date | null {
-    if (typeof value !== "string" || value.trim().length === 0) {
-        return null;
-    }
-
-    const normalized = value.trim().replace(" ", "T");
-    const parsed = new Date(normalized);
-
-    if (Number.isNaN(parsed.getTime())) {
-        return null;
-    }
-
-    return parsed;
-}
-
-function parseBoundaryDate(dateValue: string | undefined, mode: "start" | "end"): Date | null {
-    if (!dateValue) {
-        return null;
-    }
-
-    const suffix = mode === "start" ? "T00:00:00" : "T23:59:59.999";
-    const parsed = new Date(`${dateValue}${suffix}`);
-
-    if (Number.isNaN(parsed.getTime())) {
-        return null;
-    }
-
-    return parsed;
-}
-
-function shouldIncludeRowByDate(rowDate: unknown, range: ExportDateRange): boolean {
-    const hasFrom = Boolean(range.from);
-    const hasTo = Boolean(range.to);
-
-    if (!hasFrom && !hasTo) {
-        return true;
-    }
-
-    const parsedRowDate = parseRowDateTime(rowDate);
-    if (!parsedRowDate) {
-        return false;
-    }
-
-    const fromDate = parseBoundaryDate(range.from, "start");
-    const toDate = parseBoundaryDate(range.to, "end");
-
-    if (fromDate && parsedRowDate < fromDate) {
-        return false;
-    }
-
-    if (toDate && parsedRowDate > toDate) {
-        return false;
-    }
-
-    return true;
-}
-
-type DataTableButtonAction = (
-    event: Event,
-    dt: unknown,
-    node: HTMLElement,
-    config: unknown,
-) => void;
 
 const mockWeatherParameters = [
     { id: 1, parametro: "Temperatura do Ar", valor: "26.4°C", dataHora: "2026-04-15 16:00" },
@@ -115,22 +46,8 @@ export function WeatherTable() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [filteredRowsCount, setFilteredRowsCount] = useState<number>(mockWeatherParameters.length);
     const isInvalidExportRange = Boolean(fromDate && toDate && fromDate > toDate);
-
-    const handleApplyExportDateRange = () => {
-        if (isInvalidExportRange) {
-            toast.error("Período inválido: a data final deve ser maior ou igual à data inicial.");
-            return;
-        }
-
-        dataTableRef.current?.draw(false);
-    };
-
-    const handleClearExportDateRange = () => {
-        setFromDate("");
-        setToDate("");
-        dataTableRef.current?.draw(false);
-    };
 
     useEffect(() => {
         exportDateRangeRef.current = {
@@ -138,6 +55,7 @@ export function WeatherTable() {
             to: toDate || undefined,
         };
         isInvalidExportRangeRef.current = isInvalidExportRange;
+        dataTableRef.current?.draw(false);
     }, [fromDate, toDate, isInvalidExportRange]);
 
     useEffect(() => {
@@ -145,26 +63,48 @@ export function WeatherTable() {
             return;
         }
 
-        const createExportAction = (buttonKey: 'csvHtml5' | 'excelHtml5') => {
-            return (
-                event: Event,
-                dt: unknown,
-                node: HTMLElement,
-                config: unknown,
-            ) => {
-                if (isInvalidExportRangeRef.current) {
-                    toast.error("Período inválido: corrija as datas antes de exportar.");
-                    return;
-                }
+        const tableElement = tableRef.current;
+        const searchPlugins = DataTable.ext.search as Array<
+            (
+                settings: { nTable: HTMLTableElement },
+                searchData: unknown[],
+                _dataIndex: number,
+                rowData?: unknown,
+            ) => boolean
+        >;
 
-                const buttonDefinition = (DataTable.ext.buttons as Record<string, { action?: DataTableButtonAction }>)[buttonKey];
-                if (buttonDefinition?.action) {
-                    Reflect.apply(buttonDefinition.action, node, [event, dt, node, config]);
-                }
-            };
+        const dateRangeTableFilter = (
+            settings: { nTable: HTMLTableElement },
+            searchData: unknown[],
+            _dataIndex: number,
+            rowData?: unknown,
+        ) => {
+            if (settings.nTable !== tableElement) {
+                return true;
+            }
+
+            if (isInvalidExportRangeRef.current) {
+                return true;
+            }
+
+            const resolvedRowData = Array.isArray(rowData)
+                ? rowData
+                : Array.isArray(searchData)
+                    ? searchData
+                    : [];
+
+            const rowDateValue = resolvedRowData[4];
+
+            return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
         };
 
+        searchPlugins.push(dateRangeTableFilter);
+
         const exportRowsByRange = (_rowIdx: number, rowData: unknown) => {
+            if (isInvalidExportRangeRef.current) {
+                return true;
+            }
+
             const rowValues = Array.isArray(rowData) ? rowData : [];
             const rowDateValue = rowValues[4];
             return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
@@ -181,7 +121,6 @@ export function WeatherTable() {
                             exportOptions: {
                                 rows: exportRowsByRange,
                             },
-                            action: createExportAction('csvHtml5'),
                         },
                         {
                             extend: 'excelHtml5',
@@ -189,7 +128,6 @@ export function WeatherTable() {
                             exportOptions: {
                                 rows: exportRowsByRange,
                             },
-                            action: createExportAction('excelHtml5'),
                         }
                     ]
                 },
@@ -215,6 +153,13 @@ export function WeatherTable() {
             ]
         });
         dataTableRef.current = table;
+
+        const updateFilteredRowsCount = () => {
+            setFilteredRowsCount(table.rows({ search: "applied" }).data().length);
+        };
+
+        table.on("draw", updateFilteredRowsCount);
+        updateFilteredRowsCount();
 
         const wrapper = table.table().container() as HTMLElement;
         const layoutRows = wrapper.querySelectorAll<HTMLElement>(".dt-layout-row");
@@ -255,6 +200,12 @@ export function WeatherTable() {
             if (paginationHost) {
                 paginationHost.replaceChildren();
             }
+
+            const pluginIndex = searchPlugins.indexOf(dateRangeTableFilter);
+            if (pluginIndex >= 0) {
+                searchPlugins.splice(pluginIndex, 1);
+            }
+
             setPortalTarget(null);
             dataTableRef.current = null;
             table.destroy();
@@ -359,7 +310,7 @@ export function WeatherTable() {
                             <div ref={controlsHostRef} className="weather-table-controls" />
                             {portalTarget
                                 ? createPortal(
-                                    <div className="weather-table-date-range" role="group" aria-label="Filtro de período para exportação">
+                                    <div className="weather-table-date-range" role="group" aria-label="Filtro de período da tabela">
                                         <label className="weather-table-date-range-label" htmlFor="weather-table-from-date">
                                             De:
                                             <input
@@ -380,24 +331,6 @@ export function WeatherTable() {
                                                 onChange={(event) => setToDate(event.target.value)}
                                             />
                                         </label>
-                                        <button
-                                            type="button"
-                                            className="weather-table-date-range-action"
-                                            onClick={handleApplyExportDateRange}
-                                            title="Aplicar período na exportação"
-                                            aria-label="Aplicar período na exportação"
-                                        >
-                                            <Filter size={16} />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="weather-table-date-range-action"
-                                            onClick={handleClearExportDateRange}
-                                            title="Limpar período"
-                                            aria-label="Limpar período"
-                                        >
-                                            <X size={16} />
-                                        </button>
                                     </div>,
                                     portalTarget,
                                 )
@@ -407,6 +340,12 @@ export function WeatherTable() {
                         {isInvalidExportRange ? (
                             <p className="mb-3 text-xs text-red-500">
                                 O período selecionado está inválido. A data final deve ser maior ou igual à inicial.
+                            </p>
+                        ) : null}
+
+                        {(fromDate || toDate) && !isInvalidExportRange && filteredRowsCount === 0 ? (
+                            <p className="mb-3 text-sm text-gray-500">
+                                Não encontramos dados para o intervalo selecionado. Tente ajustar as datas para visualizar os registros.
                             </p>
                         ) : null}
 

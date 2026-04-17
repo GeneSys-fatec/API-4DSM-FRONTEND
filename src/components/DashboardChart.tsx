@@ -93,7 +93,7 @@ export function DashboardChart({
           return {
             categories: [],
             data: [],
-              customRangeNotice: "Nao encontramos dados para esse período. Tente selecionar datas mais recentes.",
+              customRangeNotice: "Não encontramos dados para esse período. Tente selecionar datas mais recentes.",
           };
         }
 
@@ -104,12 +104,12 @@ export function DashboardChart({
           return {
             categories: [],
             data: [],
-              customRangeNotice: `Nao ha dados dentro do intervalo informado. Faixa disponivel: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`,
+              customRangeNotice: `Não há dados dentro do intervalo informado. Faixa disponível: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`,
           };
         }
 
         if (fromDate < availableMinDate || toDate > availableMaxDate) {
-            customRangeNotice = `Ajustamos o grafico para a faixa com dados disponiveis: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`;
+            customRangeNotice = `Ajustamos o gráfico para a faixa com dados disponíveis: ${formatNoticeRange(availableMinDate, availableMaxDate)}.`;
         }
 
         const valueByHour = new Map<string, number>();

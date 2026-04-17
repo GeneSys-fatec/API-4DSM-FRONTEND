@@ -178,7 +178,7 @@ export function StationManage() {
             </div>
             <input
               type="text"
-              placeholder="Procurar Estação"
+              placeholder="Buscar estação"
               value={filters.q}
               onChange={(e) =>
                 setFilters((prev) => ({
@@ -217,7 +217,7 @@ export function StationManage() {
             onClick={createModal.open}
             className="flex items-center gap-2 bg-tecsus-green text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all shadow-sm"
           >
-            Add new
+            Cadastrar estação
           </button>
         </div>
       </div>
