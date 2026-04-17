@@ -76,6 +76,13 @@ function shouldIncludeRowByDate(rowDate: unknown, range: ExportDateRange): boole
     return true;
 }
 
+type DataTableButtonAction = (
+    event: Event,
+    dt: unknown,
+    node: HTMLElement,
+    config: unknown,
+) => void;
+
 const mockWeatherParameters = [
     { id: 1, parametro: "Temperatura do Ar", valor: "26.4°C", dataHora: "2026-04-15 16:00" },
     { id: 2, parametro: "Umidade Relativa", valor: "68%", dataHora: "2026-04-15 16:00" },
@@ -139,21 +146,20 @@ export function WeatherTable() {
         }
 
         const createExportAction = (buttonKey: 'csvHtml5' | 'excelHtml5') => {
-            return function (
-                this: unknown,
+            return (
                 event: Event,
                 dt: unknown,
                 node: HTMLElement,
                 config: unknown,
-            ) {
+            ) => {
                 if (isInvalidExportRangeRef.current) {
                     toast.error("Período inválido: corrija as datas antes de exportar.");
                     return;
                 }
 
-                const buttonDefinition = (DataTable.ext.buttons as Record<string, { action?: Function }>)[buttonKey];
+                const buttonDefinition = (DataTable.ext.buttons as Record<string, { action?: DataTableButtonAction }>)[buttonKey];
                 if (buttonDefinition?.action) {
-                    buttonDefinition.action.call(this, event, dt, node, config);
+                    Reflect.apply(buttonDefinition.action, node, [event, dt, node, config]);
                 }
             };
         };

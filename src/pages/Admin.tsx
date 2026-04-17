@@ -63,15 +63,24 @@ export function Admin() {
     const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
 
     const loadAdmins = useCallback(async () => {
-        const data = await administratorService.findAll({
+        return administratorService.findAll({
             q: filters.q,
             status: filters.status,
         });
-        setAdmins(data);
     }, [filters.q, filters.status]);
 
     useEffect(() => {
-        void loadAdmins();
+        let isMounted = true;
+
+        void loadAdmins().then((data) => {
+            if (isMounted) {
+                setAdmins(data);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+        };
     }, [loadAdmins]);
 
     useEffect(() => {
@@ -99,7 +108,7 @@ export function Admin() {
     };
 
     const handleFormSuccess = async () => {
-        await loadAdmins();
+        setAdmins(await loadAdmins());
         closeModal();
     };
 
@@ -108,7 +117,7 @@ export function Admin() {
         try {
             await administratorService.delete(adminToDelete.id);
             toast.success("Administrador excluído com sucesso!");
-            await loadAdmins();
+            setAdmins(await loadAdmins());
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Não foi possível excluir o administrador.";
             toast.error(message);
