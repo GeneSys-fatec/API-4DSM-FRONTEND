@@ -46,7 +46,6 @@ export function WeatherTable() {
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [filteredRowsCount, setFilteredRowsCount] = useState<number>(mockWeatherParameters.length);
     const isInvalidExportRange = Boolean(fromDate && toDate && fromDate > toDate);
 
     useEffect(() => {
@@ -153,13 +152,6 @@ export function WeatherTable() {
             ]
         });
         dataTableRef.current = table;
-
-        const updateFilteredRowsCount = () => {
-            setFilteredRowsCount(table.rows({ search: "applied" }).data().length);
-        };
-
-        table.on("draw", updateFilteredRowsCount);
-        updateFilteredRowsCount();
 
         const wrapper = table.table().container() as HTMLElement;
         const layoutRows = wrapper.querySelectorAll<HTMLElement>(".dt-layout-row");
