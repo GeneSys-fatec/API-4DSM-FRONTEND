@@ -4,7 +4,7 @@ import {
   Settings2,
   Edit2,
   Trash2,
-  Filter,
+  X,
 } from "lucide-react";
 import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
@@ -164,13 +164,13 @@ export function StationManage() {
   ];
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+    <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-800">
           Estações Cadastradas
         </h1>
 
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+        <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
 
           <div className="relative w-full sm:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -198,7 +198,7 @@ export function StationManage() {
                 status: e.target.value as StationFiltersState["status"],
               }))
             }
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           >
             <option value="">Todos os status</option>
             <option value="true">Ativa</option>
@@ -206,11 +206,11 @@ export function StationManage() {
           </select>
 
           <button
-            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full sm:w-auto flex items-center justify-center"
             onClick={() => setFilters(DEFAULT_FILTERS)}
             title="Limpar filtros"
           >
-            <Filter size={18} />
+            <X size={18} />
           </button>
 
           <button

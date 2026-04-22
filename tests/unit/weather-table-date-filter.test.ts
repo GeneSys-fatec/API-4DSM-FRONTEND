@@ -95,4 +95,39 @@ describe('Weather Table Date Filter', () => {
 
     expect(include).toBe(false);
   });
+
+  it('deve retornar null se valor for null ou undefined no parseRowDateTime', () => {
+    expect(parseRowDateTime(null)).toBeNull();
+    expect(parseRowDateTime(undefined)).toBeNull();
+  });
+
+  it('deve retornar null se a string normalizada for vazia no parseRowDateTime', () => {
+    expect(parseRowDateTime('   ')).toBeNull();
+    expect(parseRowDateTime('<br>')).toBeNull();
+  });
+
+  it('deve retornar null se a data de fallback falhar no parseRowDateTime', () => {
+    expect(parseRowDateTime('uma string qualquer e maluca sem padrao de data')).toBeNull();
+  });
+
+  it('deve retornar null se dateValue for vazio no parseBoundaryDate', () => {
+    expect(parseBoundaryDate('', 'start')).toBeNull();
+    expect(parseBoundaryDate(undefined, 'end')).toBeNull();
+  });
+
+  it('deve retornar null para data invalida no parseBoundaryDate', () => {
+    expect(parseBoundaryDate('99-99-9999', 'start')).toBeNull();
+  });
+
+  it('deve validar limites exatos no shouldIncludeRowByDate', () => {
+    // A data bate perfeitamente com 'from'
+    expect(shouldIncludeRowByDate('2026-04-15 00:00:00', { from: '2026-04-15' })).toBe(true);
+    // A data é menor que from (deve falhar)
+    expect(shouldIncludeRowByDate('2026-04-14 23:59:59', { from: '2026-04-15' })).toBe(false);
+
+    // A data bate perfeitamente com 'to'
+    expect(shouldIncludeRowByDate('2026-04-15 23:59:59', { to: '2026-04-15' })).toBe(true);
+    // A data é maior que to (deve falhar)
+    expect(shouldIncludeRowByDate('2026-04-16 00:00:00', { to: '2026-04-15' })).toBe(false);
+  });
 });

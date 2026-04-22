@@ -1,4 +1,4 @@
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parameterService, type Parameter } from "@/services/parameter-service";
@@ -323,6 +323,19 @@ export function WeatherTable() {
                                                 onChange={(event) => setToDate(event.target.value)}
                                             />
                                         </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setFromDate("");
+                                                setToDate("");
+                                            }}
+                                            title="Limpar filtros"
+                                            aria-label="Limpar filtros"
+                                            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                                            disabled={!fromDate && !toDate}
+                                        >
+                                            <X size={18} />
+                                        </button>
                                     </div>,
                                     portalTarget,
                                 )

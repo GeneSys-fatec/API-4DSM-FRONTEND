@@ -258,4 +258,8 @@ body {
   .weather-table-date-range-label input {
     flex: 1;
   }
+
+  .weather-table-date-range > button {
+    justify-self: end;
+  }
 }

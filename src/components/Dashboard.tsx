@@ -286,30 +286,30 @@ export function Dashboard() {
                 </div>
 
                 {periodoAtivo === "custom" ? (
-                  <div className="flex flex-nowrap items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto overflow-x-auto">
-                    <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                  <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
                       De:
                       <input
                         type="date"
                         value={customFrom}
                         max={customTo || undefined}
                         onChange={(event) => setCustomFrom(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
                       />
                     </label>
-                    <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
                       Até:
                       <input
                         type="date"
                         value={customTo}
                         min={customFrom || undefined}
                         onChange={(event) => setCustomTo(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
                       />
                     </label>
 
                     <button
-                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0"
+                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 justify-self-end"
                       onClick={clearPeriodFilters}
                       title="Limpar filtros"
                     >

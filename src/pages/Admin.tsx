@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Trash2, Pencil, Search, Filter } from "lucide-react";
+import { Trash2, Pencil, Search, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { type Administrator, administratorService } from "../services/administrator-services";
 import { CreateAdminModal } from "../components/CreateAdminModal";
@@ -134,7 +134,7 @@ export function Admin() {
                     Administradores cadastrados
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full md:w-auto">
                     <div className="relative w-full sm:w-64 shrink-0">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
@@ -161,7 +161,7 @@ export function Admin() {
                                 status: event.target.value as AdminFiltersState["status"],
                             }))
                         }
-                        className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
                     >
                         <option value="">Todos os status</option>
                         <option value="true">Ativo</option>
@@ -170,11 +170,11 @@ export function Admin() {
 
                     <button
                         type="button"
-                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full sm:w-auto flex items-center justify-center"
                         onClick={() => setFilters(DEFAULT_FILTERS)}
                         title="Limpar filtros"
                     >
-                        <Filter size={18} />
+                        <X size={18} />
                     </button>
 
                     <button

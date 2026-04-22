@@ -198,7 +198,7 @@ export function Alerts() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
         <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">Alertas registrados</h1>
 
-        <div className="flex gap-3 items-center w-full md:w-auto">
+        <div className="flex flex-wrap gap-3 items-stretch sm:items-center w-full md:w-auto">
           <div className="relative w-full md:w-72 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
@@ -228,7 +228,7 @@ export function Alerts() {
                 stationId: e.target.value,
               }))
             }
-            className="w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-32 md:w-28 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           />
 
           <input
@@ -242,7 +242,7 @@ export function Alerts() {
                 parameterId: e.target.value,
               }))
             }
-            className="w-32 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-36 md:w-32 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           />
 
           <select
@@ -253,7 +253,7 @@ export function Alerts() {
                 status: e.target.value as AlertsFiltersState["status"],
               }))
             }
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           >
             <option value="">Todos os status</option>
             <option value="active">Ativo</option>
@@ -270,7 +270,7 @@ export function Alerts() {
                 user: e.target.value,
               }))
             }
-            className="w-32 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-36 md:w-32 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           />
 
           <input
@@ -282,7 +282,7 @@ export function Alerts() {
                 from: e.target.value,
               }))
             }
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           />
 
           <input
@@ -294,13 +294,13 @@ export function Alerts() {
                 to: e.target.value,
               }))
             }
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            className="w-[calc(50%-0.375rem)] sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
           />
 
           <button
             type="button"
             onClick={() => setFilters(DEFAULT_FILTERS)}
-            className="bg-gray-100 text-gray-700 font-semibold text-sm p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md whitespace-nowrap"
+            className="bg-gray-100 text-gray-700 font-semibold text-sm p-2 px-3 hover:bg-gray-200 cursor-pointer rounded-md whitespace-nowrap w-full sm:w-auto min-h-10"
           >
             Limpar
           </button>
@@ -308,7 +308,7 @@ export function Alerts() {
           <button
             type="button"
             onClick={handleCreate}
-            className="bg-tecsus-green text-white font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md whitespace-nowrap"
+            className="bg-tecsus-green text-white font-semibold text-sm p-2 px-3 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md whitespace-nowrap w-full sm:w-auto min-h-10"
           >
             Cadastrar alerta
           </button>
