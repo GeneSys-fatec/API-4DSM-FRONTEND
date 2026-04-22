@@ -11,6 +11,7 @@ import { Admin } from "@/pages/Admin";
 import { PublicLayout } from "@/components/Layout/publicLayout";
 import { PublicHome } from "@/pages/PublicHome";
 import { WeatherDatas } from "@/pages/WeatherDatas";
+import { MapView } from "@/pages/MapView";
 
 export function AppRoutes() {
   return (
@@ -18,16 +19,15 @@ export function AppRoutes() {
       <Toaster position="top-right" />
 
       <Routes>
-        {/* <Route path="/" element={<Navigate to="/login" replace />} /> */}
 
         <Route element={<PublicLayout />}>
           <Route path="/" element={<PublicHome />} />
           <Route path="/weather-datas/:id" element={<WeatherDatas />} />
+          <Route path="/mapa" element={<MapView />} />
         </Route>
 
         <Route path="/login" element={<Login />} />
 
-        {/* Rotas Protegidas */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/admin/selecionar-estacao" element={<StationSelect />} />
@@ -35,6 +35,7 @@ export function AppRoutes() {
             <Route path="/admin/gerenciar-parametros" element={<Parameters />} />
             <Route path="/admin/gerenciar-estacoes" element={<StationManage />} />
             <Route path="/admin/gerenciar-administradores" element={<Admin />} />
+            <Route path="/admin/mapa" element={<MapView mode="admin" />} />
           </Route>
         </Route>
       </Routes>

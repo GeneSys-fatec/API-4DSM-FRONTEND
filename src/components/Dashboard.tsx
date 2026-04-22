@@ -18,7 +18,7 @@ import { parameterService, type Parameter } from "../services/parameter-service"
 import { stationParameterService } from "../services/station-parameter-service";
 import { listPublicStations } from "../services/station-service"; 
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
-import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes('temp')) return <Thermometer className="w-5 h-5" />;

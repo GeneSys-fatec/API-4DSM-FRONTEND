@@ -20,7 +20,7 @@ import {
 } from "../services/station-service";
 import { toast } from "react-toastify";
 import { ParameterByStation } from "@/components/ParameterByStation";
-import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const STATION_FILTERS_STORAGE_KEY = "@ClimaSense:filters:stations";
 

@@ -5,7 +5,7 @@ import { Pencil, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { parameterService } from "@/services/parameter-service";
 import { toast } from "react-toastify";
-import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const PARAMETER_FILTERS_STORAGE_KEY = "@ClimaSense:filters:parameter-types";
 

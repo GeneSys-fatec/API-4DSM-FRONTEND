@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Search, MapPin } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Search, MapPin, Map } from "lucide-react";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { usePublicStationsList, stationFilter } from "../services/station-service";
 
 interface PublicSidebarProps {
@@ -12,6 +12,7 @@ export function PublicSidebar({ isOpen, closeMenu }: PublicSidebarProps) {
   const { stations, isLoading } = usePublicStationsList(); 
   const [termoBusca, setTermoBusca] = useState("");
   const { id: currentStationId } = useParams();
+  const location = useLocation();
 
   const estacoesFiltradas = useMemo(() => {
     return stationFilter(stations.filter(s => s.isActive), termoBusca);
@@ -19,7 +20,6 @@ export function PublicSidebar({ isOpen, closeMenu }: PublicSidebarProps) {
 
   return (
     <>
-      {/* Overlay Mobile */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
@@ -33,10 +33,24 @@ export function PublicSidebar({ isOpen, closeMenu }: PublicSidebarProps) {
         }`}
       >
         <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-          <h2 className="text-lg font-bold text-tecsus-green flex items-center gap-2 mb-4">
+          <h2 className="text-lg font-bold text-tecsus-green flex items-center gap-2 mb-3">
             <MapPin size={20} />
             Estações
           </h2>
+
+          <Link
+            to="/mapa"
+            id="sidebar-map-link"
+            onClick={closeMenu}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors mb-3 ${
+              location.pathname === "/mapa"
+                ? "bg-tecsus-green text-white shadow-sm"
+                : "text-gray-600 hover:bg-gray-100 border border-gray-200"
+            }`}
+          >
+            <Map size={15} />
+            Ver mapa de estações
+          </Link>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
