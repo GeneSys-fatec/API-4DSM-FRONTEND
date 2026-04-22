@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
+  X,
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
@@ -17,6 +18,7 @@ import { parameterService, type Parameter } from "../services/parameter-service"
 import { stationParameterService } from "../services/station-parameter-service";
 import { listPublicStations } from "../services/station-service"; 
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
+import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
 
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes('temp')) return <Thermometer className="w-5 h-5" />;
@@ -31,18 +33,58 @@ export function Dashboard() {
   const location = useLocation(); 
   const { id } = useParams();
   const { registerGeneratedAlerts } = useAlertNotifications();
+  const stationId = id ? Number.parseInt(id, 10) : 1;
+  const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
+
   const [stationName, setStationName] = useState<string>(""); 
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
   const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const isAdminRoute = location.pathname.includes('/admin');
 
+  const isCustomRangeInvalid = Boolean(
+    periodoAtivo === "custom" &&
+    customFrom &&
+    customTo &&
+    customFrom > customTo,
+  );
+
+  const parseStoredPeriodo = (value: unknown): PeriodoTempo => {
+    if (value === "24h" || value === "7d" || value === "30d" || value === "custom") {
+      return value;
+    }
+
+    return "24h";
+  };
+
+  useEffect(() => {
+    const stored = loadStoredFilters(dashboardFiltersStorageKey, {
+      periodoAtivo: "24h" as PeriodoTempo,
+      customFrom: "",
+      customTo: "",
+    });
+
+    setPeriodoAtivo(parseStoredPeriodo(stored.periodoAtivo));
+    setCustomFrom(stored.customFrom ?? "");
+    setCustomTo(stored.customTo ?? "");
+  }, [dashboardFiltersStorageKey]);
+
+  useEffect(() => {
+    persistFilters(dashboardFiltersStorageKey, {
+      periodoAtivo,
+      customFrom,
+      customTo,
+    });
+  }, [dashboardFiltersStorageKey, periodoAtivo, customFrom, customTo]);
+
   useEffect(() => {
     let isMounted = true;
-    const stationId = id ? Number.parseInt(id, 10) : 1;
 
     const notifyGeneratedAlerts = (wData: WeatherData | null) => {
       if (!wData?.generatedAlerts?.length) {
@@ -76,12 +118,16 @@ export function Dashboard() {
       }
 
       try {
-        
+        const weatherRange =
+          periodoAtivo === "custom" && customFrom && customTo && !isCustomRangeInvalid
+            ? { from: customFrom, to: customTo }
+            : undefined;
+
         const [wData, allParams, stationLinks, publicStations] = await Promise.all([
-          fetchWeatherForStation(stationId),
+          fetchWeatherForStation(stationId, weatherRange),
           parameterService.findAll(),
           stationParameterService.findByStation(stationId),
-          listPublicStations()
+          listPublicStations(),
         ]);
 
         if (!isMounted) return;
@@ -105,6 +151,8 @@ export function Dashboard() {
             if (!current) return activeParams[0];
             return activeParams.find((item) => item.id === current.id) ?? activeParams[0];
           });
+        } else {
+          setParametroAtivo(null);
         }
 
         if (!wData && !backgroundRefresh) {
@@ -131,13 +179,19 @@ export function Dashboard() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [id, registerGeneratedAlerts]);
+  }, [registerGeneratedAlerts, stationId, periodoAtivo, customFrom, customTo, isCustomRangeInvalid]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
     return periodoAtivo === periodo
       ? baseClass + "bg-tecsus-green text-white shadow-sm"
       : baseClass + "text-gray-500 hover:text-gray-900 hover:bg-gray-100";
+  };
+
+  const clearPeriodFilters = () => {
+    setPeriodoAtivo("24h");
+    setCustomFrom("");
+    setCustomTo("");
   };
 
   return (
@@ -178,7 +232,7 @@ export function Dashboard() {
 
         {!isLoading && stationParams.length === 0 ? (
            <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
-              Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições.
+              {"Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições."}
            </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">
@@ -207,33 +261,80 @@ export function Dashboard() {
         {/* GRÁFICO */}
         {parametroAtivo && (
           <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-[400px] md:h-[450px]">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 shrink-0 gap-4">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight">
+            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0">
                 Gráfico de {parametroAtivo.name}
               </h3>
 
-              <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
-                {(["24h", "7d", "30d"] as PeriodoTempo[]).map((periodo) => (
-                  <button
-                    key={periodo}
-                    onClick={() => setPeriodoAtivo(periodo)}
-                    className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
-                  >
-                    {periodo === "24h"
-                      ? "Últimas 24h"
-                      : periodo === "7d"
-                        ? "7 dias"
-                        : "30 dias"}
-                  </button>
-                ))}
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end sm:ml-auto">
+                <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                  {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map((periodo) => (
+                    <button
+                      key={periodo}
+                      onClick={() => setPeriodoAtivo(periodo)}
+                      className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                    >
+                      {periodo === "24h"
+                        ? "Últimas 24h"
+                        : periodo === "7d"
+                          ? "7 dias"
+                          : periodo === "30d"
+                            ? "30 dias"
+                            : "Personalizado"}
+                    </button>
+                  ))}
+                </div>
+
+                {periodoAtivo === "custom" ? (
+                  <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
+                      De:
+                      <input
+                        type="date"
+                        value={customFrom}
+                        max={customTo || undefined}
+                        onChange={(event) => setCustomFrom(event.target.value)}
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
+                      />
+                    </label>
+                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
+                      Até:
+                      <input
+                        type="date"
+                        value={customTo}
+                        min={customFrom || undefined}
+                        onChange={(event) => setCustomTo(event.target.value)}
+                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
+                      />
+                    </label>
+
+                    <button
+                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 justify-self-end"
+                      onClick={clearPeriodFilters}
+                      title="Limpar filtros"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
+
+            {isCustomRangeInvalid ? (
+              <p className="text-xs text-red-500 mt-1">
+                O período personalizado está inválido. A data final deve ser maior ou igual à inicial.
+              </p>
+            ) : null}
 
             <div className="flex-1 w-full min-h-0 pb-4">
               <DashboardChart 
                 parametro={parametroAtivo} 
                 periodo={periodoAtivo} 
                 dadosHistoricos={weatherData ? weatherData.hourly : null}
+                customRange={{
+                  from: customFrom,
+                  to: customTo,
+                }}
               />
             </div>
           </div>

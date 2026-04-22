@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface GeneratedAlertApi {
   id: number;
@@ -25,16 +25,11 @@ export interface WeatherData {
 
 export type WeatherResponse = WeatherData;
 
-
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    (typeof window !== "undefined" &&
-      (window.localStorage.getItem("authToken") ||
-        window.localStorage.getItem("token"))) ||
-    "";
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
+export interface WeatherRangeOptions {
+  from?: string;
+  to?: string;
 }
+
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -116,12 +111,17 @@ function normalizeWeatherResponse(payload: unknown): WeatherData {
 
 export const fetchWeatherForStation = async (
   stationId: number,
+  options?: WeatherRangeOptions,
 ): Promise<WeatherData | null> => {
   try {
-    const response = await apiFetch(`/weather/public/${stationId}`, {
+    const queryString = buildQueryString({
+      from: options?.from,
+      to: options?.to,
+    });
+
+    const response = await apiFetch(`/weather/public/${stationId}${queryString}`, {
       headers: {
         Accept: "application/json",
-        ...getAuthHeaders(),
       },
     });
 

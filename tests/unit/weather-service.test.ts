@@ -43,6 +43,19 @@ describe('Weather Service (Frontend)', () => {
     });
   });
 
+  it('deve passar parâmetros de filtro from e to na querystring', async () => {
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ current: {}, hourly: {}, generatedAlerts: [] }),
+    });
+
+    await fetchWeatherForStation(5, { from: '2026-01-01', to: '2026-01-31' });
+
+    const [url] = getFetchMock().mock.calls[0];
+    expect(String(url)).toContain('from=2026-01-01');
+    expect(String(url)).toContain('to=2026-01-31');
+  });
+
   it('deve retornar null em caso de erro na requisição (ex: 400 ou 500)', async () => {
     // Arrange
     getFetchMock().mockResolvedValueOnce({

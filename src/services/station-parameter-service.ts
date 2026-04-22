@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface StationParameter {
     id: number;
@@ -14,10 +14,24 @@ export interface CreateStationParameterPayload {
     isActive?: boolean;
 }
 
+export interface StationParameterFilters {
+    q?: string;
+    idTypeParam?: number;
+    from?: string;
+    to?: string;
+}
+
 export const stationParameterService = {
-    findByStation: async (idStation: number): Promise<StationParameter[]> => {
+    findByStation: async (idStation: number, filters?: StationParameterFilters): Promise<StationParameter[]> => {
         try {
-            const response = await apiFetch(`/parameters/public/station/${idStation}`);
+            const queryString = buildQueryString({
+                q: filters?.q,
+                idTypeParam: filters?.idTypeParam,
+                from: filters?.from,
+                to: filters?.to,
+            });
+
+            const response = await apiFetch(`/parameters/public/station/${idStation}${queryString}`);
             if (!response.ok) {
                 console.error("Erro no GET findByStation:", await response.text());
                 throw new Error("Erro ao buscar parâmetros da estação");

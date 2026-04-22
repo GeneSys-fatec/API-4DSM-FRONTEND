@@ -44,11 +44,58 @@ body {
   margin-right: auto;
 }
 
+.weather-table-controls .dt-layout-end {
+  margin-left: auto;
+  gap: 0.5rem;
+}
+
 .weather-table-controls .dt-buttons {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.weather-table-controls .weather-table-date-range-slot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 18rem;
+}
+
+.weather-table-date-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.weather-table-date-range-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #4b5563;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.weather-table-date-range-label input {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  background: #fff;
+  color: #1f2937;
+  font-size: 0.875rem;
+  padding: 0.35rem 0.5rem;
+  min-height: 2.25rem;
+}
+
+.weather-table-date-range-label input:focus {
+  outline: none;
+  border-color: var(--color-tecsus-green);
+  box-shadow: 0 0 0 1px var(--color-tecsus-green);
 }
 
 .weather-table-controls .dt-button {
@@ -74,7 +121,7 @@ body {
 .weather-table-controls .dt-search {
   position: relative;
   width: 100%;
-  max-width: 16rem;
+  max-width: 14rem;
   flex-shrink: 0;
 }
 
@@ -186,8 +233,33 @@ body {
 
   .weather-table-controls .dt-layout-start,
   .weather-table-controls .dt-layout-end,
-  .weather-table-controls .dt-search {
+  .weather-table-controls .dt-search,
+  .weather-table-controls .weather-table-date-range-slot {
     width: 100%;
     max-width: none;
+  }
+
+  .weather-table-controls .dt-layout-end {
+    margin-left: 0;
+  }
+
+  .weather-table-date-range {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .weather-table-date-range-label {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .weather-table-date-range-label input {
+    flex: 1;
+  }
+
+  .weather-table-date-range > button {
+    justify-self: end;
   }
 }

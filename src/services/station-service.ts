@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { toast } from "react-toastify";
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface Station {
   id: string;
@@ -39,6 +39,16 @@ export interface CreateStationInput {
   idDatalogger: string;
   status: string;
   isActive?: boolean;
+}
+
+export interface StationListFilters {
+  q?: string;
+  status?: string;
+  isActive?: boolean;
+  user?: string;
+  idDatalogger?: string;
+  from?: string;
+  to?: string;
 }
 
 function isAbortError(err: unknown): err is { name: string } {
@@ -132,8 +142,19 @@ export async function getStationById(
 
 export async function listStations(options?: {
   signal?: AbortSignal;
+  filters?: StationListFilters;
 }): Promise<Station[]> {
-  const data = await fetchJson<StationApi[]>("/stations", {
+  const queryString = buildQueryString({
+    q: options?.filters?.q,
+    status: options?.filters?.status,
+    isActive: options?.filters?.isActive,
+    user: options?.filters?.user,
+    idDatalogger: options?.filters?.idDatalogger,
+    from: options?.filters?.from,
+    to: options?.filters?.to,
+  });
+
+  const data = await fetchJson<StationApi[]>(`/stations${queryString}`, {
     method: "GET",
     signal: options?.signal,
   });
@@ -182,17 +203,20 @@ export async function updateStation(
   return mapStationApiToEstacaoModel(updated);
 }
 
-export function useStationsList() {
+export function useStationsList(filters?: StationListFilters) {
   const [stations, setStations] = useState<Station[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const reload = useCallback(async (options?: { signal?: AbortSignal }) => {
+  const reload = useCallback(async (options?: { signal?: AbortSignal; filters?: StationListFilters }) => {
     setIsLoading(true);
     setErrorMessage(null);
 
     try {
-      const data = await listStations(options);
+      const data = await listStations({
+        signal: options?.signal,
+        filters: options?.filters ?? filters,
+      });
       setStations(data);
     } catch (err: unknown) {
       if (isAbortError(err)) return;
@@ -200,13 +224,13 @@ export function useStationsList() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     const controller = new AbortController();
-    void reload({ signal: controller.signal });
+    void reload({ signal: controller.signal, filters });
     return () => controller.abort();
-  }, [reload]);
+  }, [reload, filters]);
 
   return {
     stations,
