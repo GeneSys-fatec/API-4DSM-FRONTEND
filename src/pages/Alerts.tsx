@@ -14,7 +14,7 @@ import {
   type AlertPayload,
   type UpdateAlertPayload,
 } from "../services/alert-service";
-import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const ALERT_FILTERS_STORAGE_KEY = "@ClimaSense:filters:alerts";
 

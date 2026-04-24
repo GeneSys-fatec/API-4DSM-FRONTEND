@@ -434,6 +434,54 @@ export async function listPublicStations(options?: { signal?: AbortSignal }): Pr
   return data.map(mapStationApiToEstacaoModel);
 }
 
+export interface StationMapApi {
+  id: number;
+  name: string;
+  address: string;
+  latitude: string;
+  longitude: string;
+  isActive: boolean;
+  idDatalogger: string;
+}
+
+export async function listMapStations(
+  options?: { signal?: AbortSignal },
+): Promise<StationMapApi[]> {
+  return fetchJson<StationMapApi[]>("/map/stations", {
+    method: "GET",
+    signal: options?.signal,
+  });
+}
+
+export function useMapStationsList() {
+  const [stations, setStations] = useState<StationMapApi[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const reload = useCallback(async (options?: { signal?: AbortSignal }) => {
+    setIsLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const data = await listMapStations(options);
+      setStations(data);
+    } catch (err: unknown) {
+      if (isAbortError(err)) return;
+      setErrorMessage("Não foi possível carregar as estações para o mapa.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void reload({ signal: controller.signal });
+    return () => controller.abort();
+  }, [reload]);
+
+  return { stations, isLoading, errorMessage, reload };
+}
+
 
 export function usePublicStationsList() {
   const [stations, setStations] = useState<Station[]>([]);

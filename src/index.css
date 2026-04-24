@@ -18,6 +18,138 @@ body {
   font-family: "Inter", system-ui, sans-serif;
 }
 
+.leaflet-popup-content-wrapper {
+  padding: 0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  width: auto !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.station-popup-inner {
+  display: flex;
+  flex-direction: column;
+  min-width: 220px;
+}
+
+.station-popup-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  background: linear-gradient(135deg, #f0fdf0 0%, #dcfce7 100%);
+}
+
+.station-popup-pin {
+  width: 18px;
+  height: 18px;
+  color: var(--color-tecsus-green);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.station-popup-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.3;
+}
+
+.station-popup-divider {
+  height: 1px;
+  background: #e5e7eb;
+}
+
+.station-popup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 16px 12px;
+}
+
+.station-popup-city {
+  font-size: 0.8125rem;
+  color: #4b5563;
+  margin: 0;
+}
+
+.station-popup-code {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  font-family: ui-monospace, monospace;
+  margin: 0;
+}
+
+.station-popup-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin: 0 12px 12px;
+  padding: 8px 12px;
+  background: var(--color-tecsus-green);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.station-popup-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background: #fff !important;
+  color: var(--color-tecsus-green) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  border: none !important;
+  transition: background 0.15s !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background: #f0fdf4 !important;
+  color: var(--color-tecsus-green) !important;
+}
+
+.leaflet-control-zoom-in {
+  border-bottom: 1px solid #e5e7eb !important;
+}
+
+.leaflet-control-attribution {
+  font-size: 10px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(4px);
+  border-radius: 6px 0 0 0 !important;
+  padding: 2px 6px !important;
+}
+
+
 .apexcharts-canvas:focus,
 .apexcharts-canvas *:focus {
   outline: none !important;

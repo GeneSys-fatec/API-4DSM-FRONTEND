@@ -6,7 +6,7 @@ import { CreateAdminModal } from "../components/CreateAdminModal";
 import { EditAdminModal } from "../components/EditAdminModal";
 import { TableBase } from "@/components/TableBody";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
-import { loadStoredFilters, persistFilters } from "@/services/filter-storage";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const ADMIN_FILTERS_STORAGE_KEY = "@ClimaSense:filters:administrators";
 
