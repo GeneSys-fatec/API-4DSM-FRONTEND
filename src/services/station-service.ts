@@ -378,7 +378,6 @@ function normalizeString(str: string): string {
     .toLowerCase();
 }
 
-
 export function stationFilter(estacoes: Station[], termo: string): Station[] {
   if (!termo.trim()) return estacoes;
   const termoNormalizado = normalizeString(termo.trim());
@@ -447,7 +446,7 @@ export interface StationMapApi {
 export async function listMapStations(
   options?: { signal?: AbortSignal },
 ): Promise<StationMapApi[]> {
-  return fetchJson<StationMapApi[]>("/map/stations", {
+  return fetchJson<StationMapApi[]>("/stations/public", {
     method: "GET",
     signal: options?.signal,
   });
@@ -481,7 +480,6 @@ export function useMapStationsList() {
 
   return { stations, isLoading, errorMessage, reload };
 }
-
 
 export function usePublicStationsList() {
   const [stations, setStations] = useState<Station[]>([]);
