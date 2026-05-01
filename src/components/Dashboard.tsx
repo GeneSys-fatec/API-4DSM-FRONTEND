@@ -144,13 +144,12 @@ export function Dashboard() {
         });
         setLatestValues(currentValues);
 
-        if (activeParams.length > 0 && !parametroAtivo) {
+        if (activeParams.length > 0) {
           setParametroAtivo((current) => {
             if (!current) return activeParams[0];
-            return (
-              activeParams.find((item) => item.id === current.id) ??
-              activeParams[0]
-            );
+            const found = activeParams.find((item) => item.id === current.id);
+            if (found && found.id === current.id) return current;
+            return found ?? activeParams[0];
           });
         }
       } catch (err) {
@@ -237,7 +236,7 @@ export function Dashboard() {
         if (activeStationAlerts.length > 0) {
           const newAlerts = registerGeneratedAlerts(
             stationId,
-            activeStationAlerts as any,
+            activeStationAlerts as Parameters<typeof registerGeneratedAlerts>[1],
           );
 
           if (newAlerts.length === 1) {

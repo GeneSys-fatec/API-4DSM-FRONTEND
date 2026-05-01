@@ -14,6 +14,23 @@ import { shouldIncludeRowByDate, type ExportDateRange } from "./weatherTableDate
 
 DataTable.Buttons.jszip(JSZip);
 
+interface DataTableInstance {
+    draw: (reset?: boolean) => void;
+    destroy: () => void;
+    table: () => { container: () => HTMLElement | Element };
+}
+
+interface MeasurementData {
+    id: number;
+    value: number | string | null;
+    collectedAt: string;
+    idParameter?: {
+        idTypeParam?: {
+            name: string;
+            unit: string;
+        };
+    };
+}
 
 const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
@@ -28,7 +45,7 @@ export function WeatherTable() {
     const isAdminRoute = location.pathname.includes('/admin');
 
     const tableRef = useRef<HTMLTableElement | null>(null);
-    const dataTableRef = useRef<any>(null);
+    const dataTableRef = useRef<DataTableInstance | null>(null);
     const exportDateRangeRef = useRef<ExportDateRange>({});
     const isInvalidExportRangeRef = useRef(false);
     const controlsHostRef = useRef<HTMLDivElement | null>(null);
@@ -36,7 +53,7 @@ export function WeatherTable() {
 
     const [stationName, setStationName] = useState<string>("");
     const [stationParams, setStationParams] = useState<Parameter[]>([]);
-    const [measurements, setMeasurements] = useState<any[]>([]); 
+    const [measurements, setMeasurements] = useState<MeasurementData[]>([]); 
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
     
     const [fromDate, setFromDate] = useState("");
@@ -122,7 +139,12 @@ export function WeatherTable() {
         }
 
         const tableElement = tableRef.current;
-        const searchPlugins = DataTable.ext.search as Array<any>;
+        const searchPlugins = DataTable.ext.search as Array<(
+            settings: { nTable: HTMLTableElement },
+            searchData: unknown[],
+            _dataIndex: number,
+            rowData?: unknown,
+        ) => boolean>;
 
         const dateRangeTableFilter = (
             settings: { nTable: HTMLTableElement },

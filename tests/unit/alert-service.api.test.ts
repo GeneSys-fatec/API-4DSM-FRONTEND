@@ -70,7 +70,7 @@ describe("alert-service (api)", () => {
     await listAlerts({ q: "temperatura", status: "active" });
 
     const [url] = getFetchMock().mock.calls[0]!;
-    expect(String(url)).toContain("/alerts?");
+    expect(String(url)).toContain("/alerts/public?");
     expect(String(url)).toContain("q=temperatura");
     expect(String(url)).toContain("status=active");
   });
