@@ -2,9 +2,13 @@ import Chart from "react-apexcharts";
 import type { ApexAxisChartSeries, ApexOptions } from "apexcharts";
 import { Loader2 } from "lucide-react";
 import type { Parameter } from "../services/parameter-service";
-import type { WeatherHourlyData } from "../services/weather-service";
 
 export type PeriodoTempo = "24h" | "7d" | "30d" | "custom";
+
+export interface WeatherHourlyData {
+  time: string[];
+  [key: string]: number[] | string[];
+}
 
 interface DashboardChartProps {
   parametro: Parameter | null;
