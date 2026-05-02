@@ -13,40 +13,55 @@ import {
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
 import { DashboardChart, type PeriodoTempo } from "./DashboardChart";
-import { fetchWeatherForStation, type WeatherData } from "../services/weather-service";
-import { parameterService, type Parameter } from "../services/parameter-service";
+
+import {
+  parameterService,
+  type Parameter,
+} from "../services/parameter-service";
 import { stationParameterService } from "../services/station-parameter-service";
-import { listPublicStations } from "../services/station-service"; 
+import { listPublicStations } from "../services/station-service";
+import { measurementsService } from "../services/measurements-service";
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
+import { listAlerts } from "../services/alert-service";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
 const getIconForParameter = (jsonKey: string) => {
-  if (jsonKey.includes('temp')) return <Thermometer className="w-5 h-5" />;
-  if (jsonKey.includes('humid')) return <Droplets className="w-5 h-5" />;
-  if (jsonKey.includes('precip') || jsonKey.includes('rain')) return <CloudRain className="w-5 h-5" />;
-  if (jsonKey.includes('wind')) return <Wind className="w-5 h-5" />;
-  return <Activity className="w-5 h-5" />; 
+  if (jsonKey.includes("temp")) return <Thermometer className="w-5 h-5" />;
+  if (jsonKey.includes("humid")) return <Droplets className="w-5 h-5" />;
+  if (jsonKey.includes("precip") || jsonKey.includes("rain"))
+    return <CloudRain className="w-5 h-5" />;
+  if (jsonKey.includes("wind")) return <Wind className="w-5 h-5" />;
+  return <Activity className="w-5 h-5" />;
 };
+
+interface ChartHistoricalData {
+  time: string[];
+  [key: string]: number[] | string[];
+}
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const location = useLocation(); 
+  const location = useLocation();
   const { id } = useParams();
   const { registerGeneratedAlerts } = useAlertNotifications();
   const stationId = id ? Number.parseInt(id, 10) : 1;
   const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
 
-  const [stationName, setStationName] = useState<string>(""); 
+  const [stationName, setStationName] = useState<string>("");
   const [stationParams, setStationParams] = useState<Parameter[]>([]);
   const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
+
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
-  const [weatherData, setWeatherData] = useState<WeatherData | null>(null);
+  const [latestValues, setLatestValues] = useState<Record<string, number>>({});
+  const [chartHistoricalData, setChartHistoricalData] =
+    useState<ChartHistoricalData | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isAdminRoute = location.pathname.includes('/admin');
+  const isAdminRoute = location.pathname.includes("/admin");
 
   const isCustomRangeInvalid = Boolean(
     periodoAtivo === "custom" &&
@@ -56,10 +71,14 @@ export function Dashboard() {
   );
 
   const parseStoredPeriodo = (value: unknown): PeriodoTempo => {
-    if (value === "24h" || value === "7d" || value === "30d" || value === "custom") {
+    if (
+      value === "24h" ||
+      value === "7d" ||
+      value === "30d" ||
+      value === "custom"
+    ) {
       return value;
     }
-
     return "24h";
   };
 
@@ -86,56 +105,28 @@ export function Dashboard() {
   useEffect(() => {
     let isMounted = true;
 
-    const notifyGeneratedAlerts = (wData: WeatherData | null) => {
-      if (!wData?.generatedAlerts?.length) {
-        return;
-      }
-
-      const newAlerts = registerGeneratedAlerts(stationId, wData.generatedAlerts);
-      if (newAlerts.length === 0) {
-        return;
-      }
-
-      if (newAlerts.length === 1) {
-        toast.warn(newAlerts[0].description, {
-          toastId: `alert-${stationId}-${newAlerts[0].id}-${newAlerts[0].occurredAt}`,
-        });
-        return;
-      }
-
-      toast.warn(
-        `${newAlerts.length} novos alertas automáticos para a estação ${stationId}.`,
-        {
-          toastId: `alert-batch-${stationId}-${newAlerts[0].occurredAt}`,
-        },
-      );
-    };
-
-    const loadDashboardData = async (backgroundRefresh = false) => {
+    const loadDashboardBaseData = async (backgroundRefresh = false) => {
       if (!backgroundRefresh) {
         setIsLoading(true);
         setError(null);
       }
 
       try {
-        const weatherRange =
-          periodoAtivo === "custom" && customFrom && customTo && !isCustomRangeInvalid
-            ? { from: customFrom, to: customTo }
-            : undefined;
-
-        const [wData, allParams, stationLinks, publicStations] = await Promise.all([
-          fetchWeatherForStation(stationId, weatherRange),
-          parameterService.findAll(),
-          stationParameterService.findByStation(stationId),
-          listPublicStations(),
-        ]);
+        const [measurementsResult, allParams, stationLinks, publicStations] =
+          await Promise.all([
+            measurementsService.getMeasurements(stationId, "24h"),
+            parameterService.findAll(),
+            stationParameterService.findByStation(stationId),
+            listPublicStations(),
+          ]);
 
         if (!isMounted) return;
 
-        
-        const currentStation = publicStations.find(s => Number(s.id) === stationId);
+        const currentStation = publicStations.find(
+          (s) => Number(s.id) === stationId,
+        );
         if (currentStation) {
-            setStationName(currentStation.nome);
+          setStationName(currentStation.nome);
         }
 
         const activeParams = stationLinks
@@ -143,43 +134,134 @@ export function Dashboard() {
           .filter((p): p is Parameter => p !== undefined);
 
         setStationParams(activeParams);
-        setWeatherData(wData);
-        notifyGeneratedAlerts(wData);
+
+        const currentValues: Record<string, number> = {};
+        measurementsResult.data.forEach((m) => {
+          const key = m.idParameter.idTypeParam.json_key;
+          if (currentValues[key] === undefined) {
+            currentValues[key] = m.value;
+          }
+        });
+        setLatestValues(currentValues);
 
         if (activeParams.length > 0) {
           setParametroAtivo((current) => {
             if (!current) return activeParams[0];
-            return activeParams.find((item) => item.id === current.id) ?? activeParams[0];
+            const found = activeParams.find((item) => item.id === current.id);
+            if (found && found.id === current.id) return current;
+            return found ?? activeParams[0];
           });
-        } else {
-          setParametroAtivo(null);
-        }
-
-        if (!wData && !backgroundRefresh) {
-          setError("Não foi possível carregar os dados climáticos desta estação no OpenMeteo.");
         }
       } catch (err) {
         console.error(err);
-        if (!backgroundRefresh) {
+        if (!backgroundRefresh)
           setError("Erro ao carregar a estrutura do Dashboard.");
-        }
       } finally {
-        if (!backgroundRefresh && isMounted) {
-          setIsLoading(false);
-        }
+        if (!backgroundRefresh && isMounted) setIsLoading(false);
       }
     };
 
-    void loadDashboardData();
-    const intervalId = window.setInterval(() => {
-      void loadDashboardData(true);
-    }, 60_000);
+    void loadDashboardBaseData();
+    const intervalId = window.setInterval(
+      () => void loadDashboardBaseData(true),
+      60_000,
+    );
 
     return () => {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [registerGeneratedAlerts, stationId, periodoAtivo, customFrom, customTo, isCustomRangeInvalid]);
+  }, [stationId]);
+
+  useEffect(() => {
+    const loadChartData = async () => {
+      if (!parametroAtivo) return;
+      if (isCustomRangeInvalid) return;
+
+      const periodParam = periodoAtivo === "custom" ? undefined : periodoAtivo;
+      let urlSuffix = `&limit=1000`;
+      if (periodoAtivo === "custom" && customFrom && customTo) {
+        urlSuffix += `&startDate=${customFrom}T00:00:00Z&endDate=${customTo}T23:59:59Z`;
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/measurements?stationId=${stationId}&parameterId=${parametroAtivo.id}${periodParam ? `&period=${periodParam}` : ""}${urlSuffix}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("@ClimaSense:token")}`,
+          },
+        },
+      );
+
+      const responseData = await response.json();
+
+      const dataAsc = [...(responseData.data || [])].reverse();
+      const simulatedHourlyData: ChartHistoricalData = { time: [] };
+      const valuesArray: number[] = [];
+
+      dataAsc.forEach((m) => {
+        simulatedHourlyData.time.push(m.collectedAt);
+        valuesArray.push(m.value);
+      });
+      simulatedHourlyData[parametroAtivo.json_key] = valuesArray;
+
+      setChartHistoricalData(simulatedHourlyData);
+    };
+
+    void loadChartData();
+  }, [
+    parametroAtivo,
+    periodoAtivo,
+    stationId,
+    customFrom,
+    customTo,
+    isCustomRangeInvalid,
+  ]);
+
+  useEffect(() => {
+    if (stationParams.length === 0) return;
+
+    const stationParamIds = stationParams.map((p) => p.id);
+
+    const fetchAndNotifyAlerts = async () => {
+      try {
+        const allAlerts = await listAlerts();
+
+        const activeStationAlerts = allAlerts.filter(
+          (alert) =>
+            alert.status === "active" &&
+            stationParamIds.includes(alert.parameterId),
+        );
+
+        if (activeStationAlerts.length > 0) {
+          const newAlerts = registerGeneratedAlerts(
+            stationId,
+            activeStationAlerts as Parameters<typeof registerGeneratedAlerts>[1],
+          );
+
+          if (newAlerts.length === 1) {
+            toast.warn(newAlerts[0].description, {
+              toastId: `alert-${stationId}-${newAlerts[0].id}-${newAlerts[0].occurredAt}`,
+            });
+          } else if (newAlerts.length > 1) {
+            toast.warn(
+              `${newAlerts.length} novos alertas automáticos para a estação ${stationId}.`,
+              {
+                toastId: `alert-batch-${stationId}-${Date.now()}`,
+              },
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao verificar alertas em background:", error);
+      }
+    };
+
+    void fetchAndNotifyAlerts();
+    const intervalId = window.setInterval(fetchAndNotifyAlerts, 30_000);
+
+    return () => window.clearInterval(intervalId);
+  }, [stationId, stationParams, registerGeneratedAlerts]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
@@ -199,17 +281,21 @@ export function Dashboard() {
       <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div className="flex items-center gap-4">
-            <button
-              
-              onClick={() => navigate(isAdminRoute ? "/admin/selecionar-estacao" : "/")}
-              className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
-              aria-label="Voltar"
-            >
-              <ArrowLeft size={24} />
-            </button>
+            {isAdminRoute && (
+              <button
+                onClick={() => navigate("/admin/selecionar-estacao")}
+                className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
+                aria-label="Voltar"
+              >
+                <ArrowLeft size={24} />
+              </button>
+            )}
             <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
-              {/* Renderiza o nome da estação ou um fallback se ainda não carregou */}
-              {stationName ? stationName : (id ? `Dashboard: Estação ${id}` : "Visão Geral")}
+              {stationName
+                ? stationName
+                : id
+                  ? `Dashboard: Estação ${id}`
+                  : "Visão Geral"}
             </h2>
           </div>
 
@@ -231,17 +317,18 @@ export function Dashboard() {
         )}
 
         {!isLoading && stationParams.length === 0 ? (
-           <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
-              {"Esta estação não possui nenhum parâmetro (sensor) atrelado a ela. Edite a estação para adicionar medições."}
-           </div>
+          <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
+            Esta estação não possui nenhum parâmetro (sensor) atrelado a ela.
+            Edite a estação para adicionar medições.
+          </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">
             {stationParams.map((param) => {
-              
-              const rawValue = weatherData?.current?.[param.json_key];
-              const displayValue = rawValue !== undefined && rawValue !== null 
-                                    ? `${rawValue} ${param.unit}` 
-                                    : "--";
+              const rawValue = latestValues[param.json_key];
+              const displayValue =
+                rawValue !== undefined && rawValue !== null
+                  ? `${Number(rawValue).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${param.unit}`
+                  : "--";
 
               return (
                 <WeatherCard
@@ -258,9 +345,9 @@ export function Dashboard() {
           </div>
         )}
 
-        {/* GRÁFICO */}
+        {/* GRÁFICO E FILTROS */}
         {parametroAtivo && (
-          <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-[400px] md:h-[450px]">
+          <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-100 md:h-112.5">
             <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
               <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0">
                 Gráfico de {parametroAtivo.name}
@@ -268,21 +355,23 @@ export function Dashboard() {
 
               <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end sm:ml-auto">
                 <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
-                  {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map((periodo) => (
-                    <button
-                      key={periodo}
-                      onClick={() => setPeriodoAtivo(periodo)}
-                      className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
-                    >
-                      {periodo === "24h"
-                        ? "Últimas 24h"
-                        : periodo === "7d"
-                          ? "7 dias"
-                          : periodo === "30d"
-                            ? "30 dias"
-                            : "Personalizado"}
-                    </button>
-                  ))}
+                  {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map(
+                    (periodo) => (
+                      <button
+                        key={periodo}
+                        onClick={() => setPeriodoAtivo(periodo)}
+                        className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                      >
+                        {periodo === "24h"
+                          ? "Últimas 24h"
+                          : periodo === "7d"
+                            ? "7 dias"
+                            : periodo === "30d"
+                              ? "30 dias"
+                              : "Personalizado"}
+                      </button>
+                    ),
+                  )}
                 </div>
 
                 {periodoAtivo === "custom" ? (
@@ -322,15 +411,16 @@ export function Dashboard() {
 
             {isCustomRangeInvalid ? (
               <p className="text-xs text-red-500 mt-1">
-                O período personalizado está inválido. A data final deve ser maior ou igual à inicial.
+                O período personalizado está inválido. A data final deve ser
+                maior ou igual à inicial.
               </p>
             ) : null}
 
             <div className="flex-1 w-full min-h-0 pb-4">
-              <DashboardChart 
-                parametro={parametroAtivo} 
-                periodo={periodoAtivo} 
-                dadosHistoricos={weatherData ? weatherData.hourly : null}
+              <DashboardChart
+                parametro={parametroAtivo}
+                periodo={periodoAtivo}
+                dadosHistoricos={chartHistoricalData}
                 customRange={{
                   from: customFrom,
                   to: customTo,
