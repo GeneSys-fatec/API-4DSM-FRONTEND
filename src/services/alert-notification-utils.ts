@@ -1,8 +1,8 @@
-import type { GeneratedAlertApi } from "./weather-service";
+import type { AlertModel } from "./alert-service";
 
 export const DEFAULT_ALERT_DEDUP_WINDOW_MS = 5 * 60 * 1000;
 
-export interface NotificationAlertInput extends GeneratedAlertApi {
+export interface NotificationAlertInput extends AlertModel {
   stationId: number;
 }
 

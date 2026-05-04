@@ -18,7 +18,6 @@ describe('Administrator Service (Frontend)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     globalThis.fetch = vi.fn();
-    // Silencia os console.error durante os testes para não sujar o terminal
     vi.spyOn(console, 'error').mockImplementation(() => {}); 
   });
 
@@ -34,6 +33,20 @@ describe('Administrator Service (Frontend)', () => {
     expect(String(url)).toContain('/administrator');
     expect(init?.method ?? 'GET').toBe('GET'); 
     expect(result).toEqual([mockAdmin]);
+  });
+
+  it('findAll: deve enviar query params quando filtros forem informados', async () => {
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      json: async () => [mockAdmin],
+    });
+
+    await administratorService.findAll({ q: 'admin', status: 'true' });
+
+    const [url] = getFetchMock().mock.calls[0];
+    expect(String(url)).toContain('/administrator?');
+    expect(String(url)).toContain('q=admin');
+    expect(String(url)).toContain('status=true');
   });
 
   it('findAll: deve retornar um array vazio se a requisição falhar', async () => {

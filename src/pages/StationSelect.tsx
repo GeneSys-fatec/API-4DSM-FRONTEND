@@ -96,10 +96,10 @@ export function StationSelect() {
             columns={columns}
             rowClassName="hover:bg-[#e8f5e9]/50 group"
             getRowKey={(item) => item.id}
-            onRowClick={(item) => navigate(`/admin/dashboard/${item.id}`)}
+            onRowClick={(item) => navigate(`/admin/weather-datas/${item.id}`)}
             renderActions={() => (
               <span className="text-tecsus-green font-bold text-sm flex items-center justify-end gap-2 opacity-80 group-hover:opacity-100 group-hover:translate-x-1 transition-all">
-                Acessar Dashboard <ArrowRight size={16} />
+                Acessar Dados <ArrowRight size={16} />
               </span>
             )}
           />

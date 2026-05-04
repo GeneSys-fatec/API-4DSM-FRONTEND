@@ -33,7 +33,7 @@ describe("Station Parameter Service (Frontend)", () => {
     const result = await stationParameterService.findByStation(5);
 
     const [url] = getFetchMock().mock.calls[0];
-    expect(String(url)).toContain("/parameters/station/5");
+    expect(String(url)).toContain("/parameters/public/station/5");
     expect(result).toEqual(mockLinks);
   });
 

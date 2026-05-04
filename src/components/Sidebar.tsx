@@ -7,6 +7,7 @@ import {
   HelpCircle,
   LogOut,
   X,
+  Map,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -27,6 +28,7 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     { to: "/admin/gerenciar-estacoes", icon: Wifi, label: "Gerenciar Estações" },
     { to: "/admin/gerenciar-parametros", icon: AlertCircle, label: "Gerenciar Parâmetros" },
     { to: "/admin/gerenciar-administradores", icon: Users, label: "Cadastrar Administrador" },
+    { to: "/admin/mapa", icon: Map, label: "Mapa de Estações" },
   ];
 
   return (

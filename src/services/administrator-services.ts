@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch, buildQueryString } from './api';
 
 export interface Administrator {
     id: number;
@@ -12,10 +12,24 @@ export interface CreateAdminPayload {
     password?: string;
 }
 
+export interface AdministratorListFilters {
+    q?: string;
+    status?: string;
+    from?: string;
+    to?: string;
+}
+
 export const administratorService = {
-    findAll: async (): Promise<Administrator[]> => {
+    findAll: async (filters?: AdministratorListFilters): Promise<Administrator[]> => {
         try {
-            const response = await apiFetch(`/administrator`);
+            const queryString = buildQueryString({
+                q: filters?.q,
+                status: filters?.status,
+                from: filters?.from,
+                to: filters?.to,
+            });
+
+            const response = await apiFetch(`/administrator${queryString}`);
             if (!response.ok) throw new Error("Erro ao buscar administradores");
             return await response.json();
         } catch (error) {

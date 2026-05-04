@@ -1,11 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   Settings2,
   Edit2,
   Trash2,
-  ArrowUpDown,
-  Filter,
+  X,
 } from "lucide-react";
 import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
@@ -13,7 +12,7 @@ import { DeleteStationModal } from "../components/DeleteStationModal";
 import { EditStationModal } from "../components/EditStationModal";
 import {
   deleteStation,
-  stationFilter,
+  type StationListFilters,
   type Station,
   useCreateStationModal,
   useEditStationModal,
@@ -21,15 +20,52 @@ import {
 } from "../services/station-service";
 import { toast } from "react-toastify";
 import { ParameterByStation } from "@/components/ParameterByStation";
+import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
+
+const STATION_FILTERS_STORAGE_KEY = "@ClimaSense:filters:stations";
+
+type StationFiltersState = {
+  q: string;
+  status: "" | "true" | "false";
+};
+
+const DEFAULT_FILTERS: StationFiltersState = {
+  q: "",
+  status: "",
+};
 
 export function StationManage() {
-  const [termoBusca, setTermoBusca] = useState("");
+  const [filters, setFilters] = useState<StationFiltersState>(() => {
+    const stored = loadStoredFilters(STATION_FILTERS_STORAGE_KEY, DEFAULT_FILTERS as StationFiltersState & { status?: string });
+    const rawStatus = String(stored.status ?? "").toLowerCase();
+
+    let normalizedStatus: StationFiltersState["status"] = "";
+    if (rawStatus === "true" || rawStatus === "ativa") {
+      normalizedStatus = "true";
+    }
+    if (rawStatus === "false" || rawStatus === "inativa") {
+      normalizedStatus = "false";
+    }
+
+    return {
+      q: stored.q ?? "",
+      status: normalizedStatus,
+    };
+  });
+
+  const stationFilters = useMemo<StationListFilters>(() => {
+    return {
+      q: filters.q,
+      ...(filters.status ? { isActive: filters.status === "true" } : {}),
+    };
+  }, [filters.q, filters.status]);
+
   const {
     stations: estacoes,
     isLoading,
     errorMessage,
     reload,
-  } = useStationsList();
+  } = useStationsList(stationFilters);
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
   const [limitsTarget, setLimitsTarget] = useState<Station | null>(null);
@@ -81,9 +117,11 @@ export function StationManage() {
     }
   };
 
-  const estacoesFiltradas = useMemo(() => {
-    return stationFilter(estacoes, termoBusca);
-  }, [estacoes, termoBusca]);
+  const hasActiveFilters = Boolean(filters.q.trim() || filters.status);
+
+  useEffect(() => {
+    persistFilters(STATION_FILTERS_STORAGE_KEY, filters);
+  }, [filters]);
 
   const colunasDaTabela: TableColumn<Station>[] = [
     {
@@ -126,17 +164,13 @@ export function StationManage() {
   ];
 
   return (
-    <div className="p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+    <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-800">
           Estações Cadastradas
         </h1>
 
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          <button className="flex items-center justify-between gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition-colors">
-            Select column
-            <ArrowUpDown size={14} className="text-gray-400" />
-          </button>
+        <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
 
           <div className="relative w-full sm:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -144,22 +178,46 @@ export function StationManage() {
             </div>
             <input
               type="text"
-              placeholder="Procurar Estação"
-              value={termoBusca}
-              onChange={(e) => setTermoBusca(e.target.value)}
+              placeholder="Buscar estação"
+              value={filters.q}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  q: e.target.value,
+                }))
+              }
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green transition-all"
             />
           </div>
 
-          <button className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors">
-            <Filter size={18} />
+          <select
+            value={filters.status}
+            onChange={(e) =>
+              setFilters((prev) => ({
+                ...prev,
+                status: e.target.value as StationFiltersState["status"],
+              }))
+            }
+            className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+          >
+            <option value="">Todos os status</option>
+            <option value="true">Ativa</option>
+            <option value="false">Inativa</option>
+          </select>
+
+          <button
+            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full sm:w-auto flex items-center justify-center"
+            onClick={() => setFilters(DEFAULT_FILTERS)}
+            title="Limpar filtros"
+          >
+            <X size={18} />
           </button>
 
           <button
             onClick={createModal.open}
-            className="flex items-center gap-2 bg-tecsus-green text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all shadow-sm"
+            className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
           >
-            Add new
+            Cadastrar estação
           </button>
         </div>
       </div>
@@ -174,13 +232,15 @@ export function StationManage() {
             <div className="p-8 text-sm text-red-500 flex justify-center items-center">
               {errorMessage}
             </div>
-          ) : estacoesFiltradas.length === 0 ? (
+          ) : estacoes.length === 0 ? (
             <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
-              Nenhuma estação encontrada. Cadastre sua primeira estação!
+              {hasActiveFilters
+                ? "Nenhuma estação encontrada para os filtros informados."
+                : "Nenhuma estação encontrada. Cadastre sua primeira estação!"}
             </div>
           ) : (
             <TableBase
-              data={estacoesFiltradas}
+              data={estacoes}
               columns={colunasDaTabela}
               rowClassName="hover:bg-gray-50/50"
               renderActions={(item) => (
