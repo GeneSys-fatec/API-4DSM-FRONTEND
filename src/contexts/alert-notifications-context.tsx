@@ -12,7 +12,7 @@ import {
   type AlertSeenMap,
   type NotificationAlertInput,
 } from "../services/alert-notification-utils";
-import type { GeneratedAlertApi } from "../services/weather-service";
+import type { AlertModel } from "../services/alert-service";
 
 const MAX_NOTIFICATIONS = 30;
 
@@ -25,7 +25,7 @@ interface AlertNotificationsContextValue {
   unseenCount: number;
   registerGeneratedAlerts: (
     stationId: number,
-    alerts: GeneratedAlertApi[],
+    alerts: AlertModel[],
   ) => AlertNotificationItem[];
   markAllAsSeen: () => void;
   clearNotifications: () => void;
@@ -41,7 +41,7 @@ export function AlertNotificationsProvider({ children }: { children: ReactNode }
 
   const registerGeneratedAlerts = useCallback((
     stationId: number,
-    alerts: GeneratedAlertApi[],
+    alerts: AlertModel[],
   ): AlertNotificationItem[] => {
     if (alerts.length === 0) return [];
 

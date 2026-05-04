@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE_URL = "http://localhost:3333";
+import { apiFetch } from './api';
 
 export interface AlertApi {
   id: number;
@@ -31,42 +31,17 @@ export interface UpdateAlertPayload extends Partial<AlertPayload> {
   status?: "active" | "resolved";
 }
 
-function getApiBaseUrl(): string {
-  const fromEnv = import.meta.env.VITE_API_URL as string | undefined;
-  return (fromEnv?.trim() || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
-}
+export type AlertStatus = "active" | "resolved";
 
-function getAuthHeaders(): Record<string, string> {
-  const token =
-    (typeof window !== "undefined" &&
-      (window.localStorage.getItem("authToken") || window.localStorage.getItem("token"))) ||
-    "";
-
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-async function fetchJson<T>(
-  path: string,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...init,
-    headers: {
-      Accept: "application/json",
-      ...getAuthHeaders(),
-      ...(init?.headers ?? {}),
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`Request failed (${response.status})`);
-  }
-
-  if (response.status === 204) {
-    return undefined as T;
-  }
-
-  return (await response.json()) as T;
+export interface AlertListFilters {
+  stationId?: number;
+  parameterId?: number;
+  idTypeParam?: number;
+  status?: AlertStatus;
+  user?: string;
+  q?: string;
+  from?: string;
+  to?: string;
 }
 
 export function mapAlertApiToModel(alert: AlertApi): AlertModel {
@@ -82,80 +57,61 @@ export function mapAlertApiToModel(alert: AlertApi): AlertModel {
 }
 
 export function getEmptyAlertPayload(): AlertPayload {
-  return {
-    parameterId: 0,
-    measuredValue: 0,
-    occurredAt: "",
-    description: "",
-  };
+  return { parameterId: 0, measuredValue: 0, occurredAt: "", description: "" };
 }
 
 export function validateAlertPayload(payload: AlertPayload): string | null {
-  if (!payload.parameterId || payload.parameterId <= 0) {
-    return "Parâmetro é obrigatório.";
-  }
-
-  if (Number.isNaN(payload.measuredValue)) {
-    return "Valor medido inválido.";
-  }
-
-  if (!payload.occurredAt.trim()) {
-    return "Data/hora da ocorrência é obrigatória.";
-  }
-
-  if (!payload.description.trim()) {
-    return "Descrição é obrigatória.";
-  }
-
+  if (!payload.parameterId || payload.parameterId <= 0) return "Parâmetro é obrigatório.";
+  if (Number.isNaN(payload.measuredValue)) return "Valor medido inválido.";
+  if (!payload.occurredAt.trim()) return "Data/hora da ocorrência é obrigatória.";
+  if (!payload.description.trim()) return "Descrição é obrigatória.";
   return null;
 }
 
-export function alertFilter(alerts: AlertModel[], term: string): AlertModel[] {
-  const normalized = term.trim().toLowerCase();
-  if (!normalized) return alerts;
+export async function listAlerts(filters: AlertListFilters = {}): Promise<AlertModel[]> {
+  const params = new URLSearchParams();
+  
+  if (filters.q) params.append("q", filters.q);
+  if (filters.stationId) params.append("stationId", String(filters.stationId));
+  if (filters.parameterId) params.append("parameterId", String(filters.parameterId));
+  if (filters.idTypeParam) params.append("idTypeParam", String(filters.idTypeParam));
+  if (filters.status) params.append("status", filters.status);
+  if (filters.user) params.append("user", filters.user);
+  if (filters.from) params.append("from", filters.from);
+  if (filters.to) params.append("to", filters.to);
 
-  return alerts.filter((alert) => {
-    const byDescription = alert.description.toLowerCase().includes(normalized);
-    const byParam = String(alert.parameterId).includes(normalized);
-    const byStatus = alert.status.toLowerCase().includes(normalized);
-    return byDescription || byParam || byStatus;
-  });
-}
+  const queryString = params.toString();
+  
+  const url = queryString ? `/alerts/public?${queryString}` : "/alerts/public";
 
-export async function listAlerts(): Promise<AlertModel[]> {
-  const data = await fetchJson<AlertApi[]>("/alerts", {
-    method: "GET",
-  });
-
+  const response = await apiFetch(url, { method: "GET" });
+  if (!response.ok) throw new Error("Erro ao listar alertas");
+  const data = await response.json() as AlertApi[];
+  
   return data.map(mapAlertApiToModel);
 }
 
 export async function createAlert(payload: AlertPayload): Promise<AlertModel> {
-  const data = await fetchJson<AlertApi>("/alerts/create", {
+  const response = await apiFetch("/alerts/create", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(payload),
   });
-
+  if (!response.ok) throw new Error("Erro ao criar alerta");
+  const data = await response.json() as AlertApi;
   return mapAlertApiToModel(data);
 }
 
 export async function updateAlert(id: string, payload: UpdateAlertPayload): Promise<AlertModel> {
-  const data = await fetchJson<AlertApi>(`/alerts/update/${id}`, {
+  const response = await apiFetch(`/alerts/update/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(payload),
   });
-
+  if (!response.ok) throw new Error("Erro ao atualizar alerta");
+  const data = await response.json() as AlertApi;
   return mapAlertApiToModel(data);
 }
 
 export async function deleteAlert(id: string): Promise<void> {
-  await fetchJson<void>(`/alerts/delete/${id}`, {
-    method: "DELETE",
-  });
+  const response = await apiFetch(`/alerts/delete/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Erro ao deletar alerta");
 }
