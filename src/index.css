@@ -159,6 +159,48 @@ body {
   padding: 1rem;
 }
 
+.weather-table-card table.dataTable {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+}
+
+.weather-table-card table.dataTable thead th {
+  background: #f9fafb;
+  color: #9ca3af;
+  border-bottom: 1px solid #f3f4f6 !important;
+  border-top: 0 !important;
+  box-shadow: none !important;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.weather-table-card table.dataTable tbody td {
+  border-top: 0 !important;
+  border-bottom: 1px solid #f9fafb !important;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.weather-table-card table.dataTable tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.weather-table-card table.dataTable tbody tr:hover {
+  background: #f9fafb;
+}
+
+.weather-table-card .dt-scroll-head,
+.weather-table-card .dt-scroll-body {
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.weather-table-card .dt-scroll-head table,
+.weather-table-card .dt-scroll-body table {
+  margin: 0 !important;
+}
+
 .weather-table-controls .dt-layout-row {
   display: flex;
   align-items: center;
@@ -355,6 +397,24 @@ body {
 .weather-table-pagination .dt-paging-button.disabled {
   opacity: 0.45;
   cursor: not-allowed;
+}
+
+.weather-table-pagination .dt-paging-button:not(:disabled):not(.current):not(:hover) {
+  letter-spacing: 0.05em;
+}
+
+.weather-table-pagination .dt-paging-button:has(> span):not(.current):not(.disabled),
+.weather-table-pagination span.ellipsis {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: default;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  font-size: 0.875rem;
+  padding: 0;
+  min-width: auto;
+  height: auto;
 }
 
 @media (max-width: 768px) {
