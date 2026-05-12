@@ -7,12 +7,10 @@ import { listPublicStations } from "@/services/station-service";
 import { measurementsService } from "@/services/measurements-service"; 
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons-dt';
-import JSZip from 'jszip';
 import 'datatables.net-buttons/js/buttons.html5.mjs';
+import { configureDataTableExportDependencies, getDefaultExportButtons } from '@/utils/reportsUtils';
 import { createPortal } from "react-dom";
 import { shouldIncludeRowByDate, type ExportDateRange } from "./weatherTableDateFilter";
-
-DataTable.Buttons.jszip(JSZip);
 
 interface DataTableInstance {
     clear: () => DataTableInstance;
@@ -181,6 +179,8 @@ export function WeatherTable() {
             return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
         };
 
+        const { pdfReady } = configureDataTableExportDependencies(DataTable);
+
         const table = new DataTable(tableRef.current, {
             data: tableData,
             columns: [
@@ -204,10 +204,7 @@ export function WeatherTable() {
             autoWidth: false, 
             layout: {
                 topStart: {
-                    buttons: [
-                        { extend: 'csvHtml5', text: 'Exportar para CSV', exportOptions: { rows: exportRowsByRange } },
-                        { extend: 'excelHtml5', text: 'Exportar para XLS', exportOptions: { rows: exportRowsByRange } }
-                    ]
+                    buttons: getDefaultExportButtons(exportRowsByRange, { includePdf: pdfReady })
                 },
                 topEnd: { search: { placeholder: 'Procurar...' } },
                 bottomStart: null,
