@@ -397,13 +397,17 @@ export function Dashboard() {
                       />
                     </label>
 
-                    <button
-                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 justify-self-end"
-                      onClick={clearPeriodFilters}
-                      title="Limpar filtros"
-                    >
-                      <X size={18} />
-                    </button>
+                    {(customFrom || customTo) && (
+                      <button
+                        type="button"
+                        onClick={clearPeriodFilters}
+                        title="Limpar filtros"
+                        aria-label="Limpar filtros"
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
                   </div>
                 ) : null}
               </div>
