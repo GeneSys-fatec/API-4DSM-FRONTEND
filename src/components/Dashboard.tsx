@@ -25,6 +25,10 @@ import { useAlertNotifications } from "../contexts/alert-notifications-context";
 import { listAlerts } from "../services/alert-service";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
 
+interface ActiveParameter extends Parameter {
+  linkId: number;
+}
+
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes("temp")) return <Thermometer className="w-5 h-5" />;
   if (jsonKey.includes("humid")) return <Droplets className="w-5 h-5" />;
@@ -48,8 +52,8 @@ export function Dashboard() {
   const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
 
   const [stationName, setStationName] = useState<string>("");
-  const [stationParams, setStationParams] = useState<Parameter[]>([]);
-  const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
+  const [stationParams, setStationParams] = useState<ActiveParameter[]>([]);
+  const [parametroAtivo, setParametroAtivo] = useState<ActiveParameter | null>(null);
 
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
   const [customFrom, setCustomFrom] = useState("");
@@ -130,16 +134,20 @@ export function Dashboard() {
         }
 
         const activeParams = stationLinks
-          .map((link) => allParams.find((p) => p.id === link.idTypeParam))
-          .filter((p): p is Parameter => p !== undefined);
+          .map((link) => {
+            const p = allParams.find((param) => param.id === link.idTypeParam);
+            if (!p) return undefined;
+            return { ...p, linkId: link.id };
+          })
+          .filter((p): p is ActiveParameter => p !== undefined);
 
         setStationParams(activeParams);
 
         const currentValues: Record<string, number> = {};
         measurementsResult.data.forEach((m) => {
-          const key = m.idParameter.idTypeParam.json_key;
-          if (currentValues[key] === undefined) {
-            currentValues[key] = m.value;
+          const paramId = String(m.idParameter.id); 
+          if (currentValues[paramId] === undefined) {
+            currentValues[paramId] = m.value;
           }
         });
         setLatestValues(currentValues);
@@ -147,8 +155,7 @@ export function Dashboard() {
         if (activeParams.length > 0) {
           setParametroAtivo((current) => {
             if (!current) return activeParams[0];
-            const found = activeParams.find((item) => item.id === current.id);
-            if (found && found.id === current.id) return current;
+            const found = activeParams.find((item) => item.linkId === current.linkId);
             return found ?? activeParams[0];
           });
         }
@@ -184,8 +191,9 @@ export function Dashboard() {
         urlSuffix += `&startDate=${customFrom}T00:00:00Z&endDate=${customTo}T23:59:59Z`;
       }
 
+      // Agora passamos a LinkID correta, e não a ID do Tipo!
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/measurements?stationId=${stationId}&parameterId=${parametroAtivo.id}${periodParam ? `&period=${periodParam}` : ""}${urlSuffix}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/measurements?stationId=${stationId}&parameterId=${parametroAtivo.linkId}${periodParam ? `&period=${periodParam}` : ""}${urlSuffix}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("@ClimaSense:token")}`,
@@ -221,7 +229,7 @@ export function Dashboard() {
   useEffect(() => {
     if (stationParams.length === 0) return;
 
-    const stationParamIds = stationParams.map((p) => p.id);
+    const stationParamIds = stationParams.map((p) => p.linkId);
 
     const fetchAndNotifyAlerts = async () => {
       try {
@@ -324,7 +332,7 @@ export function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">
             {stationParams.map((param) => {
-              const rawValue = latestValues[param.json_key];
+              const rawValue = latestValues[String(param.linkId)];
               const displayValue =
                 rawValue !== undefined && rawValue !== null
                   ? `${Number(rawValue).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${param.unit}`
@@ -332,12 +340,12 @@ export function Dashboard() {
 
               return (
                 <WeatherCard
-                  key={param.id}
+                  key={param.linkId}
                   title={param.name}
                   icon={getIconForParameter(param.json_key)}
                   value={displayValue}
                   subtitle="Atual"
-                  isActive={parametroAtivo?.id === param.id}
+                  isActive={parametroAtivo?.linkId === param.linkId}
                   onClick={() => setParametroAtivo(param)}
                 />
               );
@@ -397,6 +405,7 @@ export function Dashboard() {
                       />
                     </label>
 
+                    
                     {(customFrom || customTo) && (
                       <button
                         type="button"
