@@ -54,11 +54,11 @@ export function Admin() {
             status: normalizedStatus,
         };
     });
-    
+
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-    
+
     const [selectedAdminId, setSelectedAdminId] = useState<number | null>(null);
     const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
 
@@ -88,7 +88,7 @@ export function Admin() {
     }, [filters]);
 
     const openCreateModal = () => setIsCreateModalOpen(true);
-    
+
     const openEditModal = (admin: Administrator) => {
         setSelectedAdminId(admin.id);
         setIsEditModalOpen(true);
@@ -129,13 +129,15 @@ export function Admin() {
 
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-8">
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
                     Administradores cadastrados
                 </h1>
 
-                <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full md:w-auto">
-                    <div className="relative w-full sm:w-64 shrink-0">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto">
+
+
+                    <div className="relative w-full lg:w-64 shrink-0">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
@@ -153,78 +155,73 @@ export function Admin() {
                         />
                     </div>
 
-                    <select
-                        value={filters.status}
-                        onChange={(event) =>
-                            setFilters((prev) => ({
-                                ...prev,
-                                status: event.target.value as AdminFiltersState["status"],
-                            }))
-                        }
-                        className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
-                    >
-                        <option value="">Todos os status</option>
-                        <option value="true">Ativo</option>
-                        <option value="false">Inativo</option>
-                    </select>
+
+                    <div className="flex items-center gap-2 w-full lg:w-auto">
+                        <select
+                            value={filters.status}
+                            onChange={(event) =>
+                                setFilters((prev) => ({
+                                    ...prev,
+                                    status: event.target.value as AdminFiltersState["status"],
+                                }))
+                            }
+                            className="flex-1 lg:flex-none lg:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        >
+                            <option value="">Todos os status</option>
+                            <option value="true">Ativo</option>
+                            <option value="false">Inativo</option>
+                        </select>
+
+                        <button
+                            type="button"
+                            className="shrink-0 p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center"
+                            onClick={() => setFilters(DEFAULT_FILTERS)}
+                            title="Limpar filtros"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
 
                     <button
                         type="button"
-                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full sm:w-auto flex items-center justify-center"
-                        onClick={() => setFilters(DEFAULT_FILTERS)}
-                        title="Limpar filtros"
-                    >
-                        <X size={18} />
-                    </button>
-
-                    <button
-                        type="button"
-                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
+                        className="bg-tecsus-green text-white font-semibold text-sm flex p-2 px-4 gap-2 opacity-90 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm w-full lg:w-auto justify-center"
                         onClick={openCreateModal}
                     >
                         Cadastrar administrador
                     </button>
+
                 </div>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {admins.length > 0 ? (
-                    <>
-                        <TableBase
-                            data={admins}
-                            columns={columns}
-                            rowClassName="hover:bg-[#e8f5e9]/50 group transition-colors"
-                            getRowKey={(item) => item.id.toString()}
-                            renderActions={(item) => (
-                                <div className="flex items-center justify-end gap-3 px-2">
-                                    <button
-                                        type="button"
-                                        className="cursor-pointer"
-                                        onClick={() => openEditModal(item)}
-                                        title="Editar"
-                                    >
-                                        <Pencil className="text-gray-400 hover:text-tecsus-green w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="cursor-pointer"
-                                        onClick={() => openDeleteModal(item)}
-                                        title="Excluir"
-                                    >
-                                        <Trash2 className="text-gray-400 hover:text-red-500 w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
-                                    </button>
-                                </div>
-                            )}
-                        />
-                        <button
-                            type="button"
-                            className="md:hidden w-full py-3 bg-tecsus-green text-white font-bold text-sm opacity-90 hover:opacity-100 cursor-pointer transition-opacity"
-                            onClick={openCreateModal}
-                        >
-                            + Cadastrar administrador
-                        </button>
-                    </>
+                    <TableBase
+                        data={admins}
+                        columns={columns}
+                        rowClassName="hover:bg-[#e8f5e9]/50 group transition-colors"
+                        getRowKey={(item) => item.id.toString()}
+                        renderActions={(item) => (
+                            <div className="flex items-center justify-end gap-3 px-2">
+                                <button
+                                    type="button"
+                                    className="cursor-pointer"
+                                    onClick={() => openEditModal(item)}
+                                    title="Editar"
+                                >
+                                    <Pencil className="text-gray-400 hover:text-tecsus-green w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
+                                </button>
+                                <button
+                                    type="button"
+                                    className="cursor-pointer"
+                                    onClick={() => openDeleteModal(item)}
+                                    title="Excluir"
+                                >
+                                    <Trash2 className="text-gray-400 hover:text-red-500 w-4 h-4 md:w-5 md:h-5 shrink-0 transition-colors" />
+                                </button>
+                            </div>
+                        )}
+                    />
                 ) : (
                     <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
                         {hasActiveFilters

@@ -30,7 +30,7 @@ export function TableBase<T>({
       <table className="w-full text-left border-collapse min-w-[600px]">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID</th>
+            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase hidden lg:table-cell">ID</th>
             {columns.map((column) => (
               <th
                 key={column.key}
@@ -40,7 +40,7 @@ export function TableBase<T>({
               </th>
             ))}
             {renderActions ? (
-              <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Ações</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right whitespace-nowrap">Ações</th>
             ) : null}
           </tr>
         </thead>
@@ -51,7 +51,7 @@ export function TableBase<T>({
               onClick={() => onRowClick?.(item, index)}
               className={`border-b border-gray-50 last:border-0 transition-all ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName}`}
             >
-              <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">
+              <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap hidden lg:table-cell">
                 {(index + 1).toString().padStart(2, '0')}
               </td>
               {columns.map((column) => (
@@ -59,7 +59,8 @@ export function TableBase<T>({
                   {column.render(item, index)}
                 </td>
               ))}
-              {renderActions ? <td className="px-6 py-4 text-right">{renderActions(item, index)}</td> : null}
+              {renderActions ? <td className="px-6 py-4 text-right whitespace-nowrap">{renderActions(item, index)}</td> : null}
+
             </tr>
           ))}
         </tbody>

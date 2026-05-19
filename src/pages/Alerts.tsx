@@ -131,11 +131,10 @@ export function Alerts() {
       header: "Status",
       render: (item) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${
-            item.status === "active"
+          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${item.status === "active"
               ? "bg-red-100 text-red-700"
               : "bg-tecsus-green/10 text-tecsus-green"
-          }`}
+            }`}
         >
           {item.status === "active" ? "ATIVO" : "RESOLVIDO"}
         </span>

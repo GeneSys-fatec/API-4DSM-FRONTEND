@@ -17,7 +17,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
-  const { logout } = useAuth(); 
+  const { logout } = useAuth();
 
   const menuItems = [
     {
@@ -35,14 +35,14 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/50 z-[500] md:hidden transition-opacity"
           onClick={closeMenu}
         />
       )}
 
       <aside
         className={`
-          fixed md:static inset-y-0 left-0 z-50 h-full bg-white border-r border-gray-100 overflow-hidden shrink-0 py-6
+          fixed md:static top-16 md:top-0 left-0 z-[500] md:z-auto h-[calc(100vh-4rem)] md:h-full bg-white border-r border-gray-100 overflow-hidden shrink-0 py-6
           transform ${isOpen ? "translate-x-0" : "-translate-x-full"} md:translate-x-0
           transition-all duration-300 ease-in-out group flex flex-col
           w-[85%] md:w-20 md:hover:w-72
@@ -77,10 +77,9 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
               to={item.to}
               onClick={closeMenu}
               className={({ isActive }) =>
-                `flex items-center py-3 mx-2 px-3 rounded-xl transition-all ${
-                  isActive
-                    ? "bg-[#e8f5e9] text-tecsus-green font-medium"
-                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                `flex items-center py-3 mx-2 px-3 rounded-xl transition-all ${isActive
+                  ? "bg-[#e8f5e9] text-tecsus-green font-medium"
+                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                 }`
               }
             >
