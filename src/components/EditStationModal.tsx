@@ -89,14 +89,14 @@ export function EditStationModal({ modal }: { modal: EditStationModalState }) {
   if (!modal.isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4" role="dialog" aria-modal="true">
       <button
         type="button"
         className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={modal.close}
       />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col max-h-[75vh] md:max-h-[90vh]">
         <div className="px-6 py-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>

@@ -30,7 +30,7 @@ export function TableBase<T>({
       <table className="w-full text-left border-collapse min-w-[600px]">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase hidden lg:table-cell">ID</th>
+            <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID</th>
             {columns.map((column) => (
               <th
                 key={column.key}
@@ -51,7 +51,7 @@ export function TableBase<T>({
               onClick={() => onRowClick?.(item, index)}
               className={`border-b border-gray-50 last:border-0 transition-all ${onRowClick ? 'cursor-pointer' : ''} ${rowClassName}`}
             >
-              <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap hidden lg:table-cell">
+              <td className="px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap">
                 {(index + 1).toString().padStart(2, '0')}
               </td>
               {columns.map((column) => (

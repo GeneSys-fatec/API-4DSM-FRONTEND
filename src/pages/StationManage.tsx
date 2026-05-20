@@ -136,8 +136,6 @@ export function StationManage() {
     {
       key: "cidade",
       header: "CIDADE",
-      thClassName: "hidden lg:table-cell",
-      tdClassName: "hidden lg:table-cell",
       render: (item) => (
         <span className="text-gray-600">{item.cidade || "-"}</span>
       ),
@@ -145,8 +143,6 @@ export function StationManage() {
     {
       key: "codigo",
       header: "CÓDIGO",
-      thClassName: "hidden lg:table-cell",
-      tdClassName: "hidden lg:table-cell",
       render: (item) => (
         <span className="text-gray-600">{item.codigo || "-"}</span>
       ),
@@ -300,11 +296,11 @@ export function StationManage() {
       <EditStationModal modal={editModal} />
       {limitsTarget && (
         <div
-          className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+          className="fixed inset-0 z-80 bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4"
           onClick={closeLimitsModal}
         >
           <div
-            className="w-full max-w-[96vw] md:max-w-5xl max-h-[90vh] mx-auto"
+            className="w-full max-w-[96vw] md:max-w-5xl max-h-[55vh] md:max-h-[90vh] mx-auto"
             onClick={(event) => event.stopPropagation()}
           >
             <ParameterByStation

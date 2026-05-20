@@ -184,8 +184,8 @@ export function WeatherTable() {
         const table = new DataTable(tableRef.current, {
             data: tableData,
             columns: [
-                { title: "ID Leitura", data: 0, className: "hidden md:table-cell" },
-                { title: "Estação", data: 1, className: "hidden lg:table-cell" },
+                { title: "ID Leitura", data: 0 },
+                { title: "Estação", data: 1 },
                 { title: "Parâmetro", data: 2 },
                 { title: "Valor", data: 3 },
                 { title: "Data/hora", data: 4 },
@@ -195,15 +195,12 @@ export function WeatherTable() {
                 row.classList.add('border-b', 'border-gray-50', 'last:border-0', 'transition-all');
                 const cells = Array.from(row.querySelectorAll('td')) as HTMLTableCellElement[];
 
-                // Coluna 0: ID Leitura
                 if (cells[0]) {
-                    cells[0].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500', 'font-medium', 'whitespace-nowrap', 'hidden', 'lg:table-cell');
+                    cells[0].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500', 'font-medium', 'whitespace-nowrap');
                 }
-                // Coluna 1: Estação
                 if (cells[1]) {
-                    cells[1].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500', 'hidden', 'lg:table-cell');
+                    cells[1].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
                 }
-                // Colunas restantes
                 for (let i = 2; i < cells.length; i++) {
                     if (i === 3) cells[i].classList.add('px-6', 'py-4', 'text-sm', 'font-medium', 'text-gray-900');
                     else cells[i].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
@@ -238,9 +235,8 @@ export function WeatherTable() {
             const generatedThead = wrapper.querySelector('thead');
             if (generatedThead) {
                 const ths = Array.from(generatedThead.querySelectorAll('th')) as HTMLTableCellElement[];
-                ths.forEach((th, idx) => {
+                ths.forEach((th) => {
                     th.classList.add('px-6', 'py-4', 'text-xs', 'font-bold', 'text-gray-400', 'uppercase');
-                    if (idx === 0 || idx === 1) th.classList.add('hidden', 'lg:table-cell');
                 });
 
             }
@@ -261,7 +257,6 @@ export function WeatherTable() {
 
             if (topEnd) {
                 const searchElement = topEnd.querySelector<HTMLElement>(".dt-search");
-                // Invertendo: Adiciona as datas DEPOIS da busca para que a busca fique no topo no mobile/tablet
                 if (searchElement) {
                     topEnd.appendChild(exportRangeSlot);
                 } else {
