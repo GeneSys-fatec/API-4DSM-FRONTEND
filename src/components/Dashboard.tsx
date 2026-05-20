@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
+  X
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
