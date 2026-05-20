@@ -24,64 +24,11 @@ import { measurementsService } from "../services/measurements-service";
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
 import { listAlerts } from "../services/alert-service";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
+import { parameterTooltipByKey, type ParameterTooltipContent } from "../utils/parameter-guide";
 
 interface ActiveParameter extends Parameter {
   linkId: number;
 }
-
-interface ParameterTooltipContent {
-  unit: string;
-  description: string;
-  importance: string;
-}
-
-const parameterTooltipByKey: Record<string, ParameterTooltipContent> = {
-  chuva_mm: {
-    unit: "mm",
-    description: "Mostra quanto de chuva caiu no local. É a medida da água acumulada em um período.",
-    importance: "Ajuda a identificar enchentes, alagamentos, saturação do solo e a intensidade de eventos de chuva forte.",
-  },
-  umidade: {
-    unit: "%",
-    description: "Indica o quanto o ar está úmido ou seco naquele momento.",
-    importance: "É útil para prever conforto térmico, formação de neblina, risco de mofo e mudanças rápidas no clima local.",
-  },
-  co2: {
-    unit: "ppm",
-    description: "Mostra a quantidade de dióxido de carbono presente no ar.",
-    importance: "Ajuda a monitorar a qualidade do ar em ambientes monitorados e a observar sinais de acúmulo de poluentes em áreas sensíveis.",
-  },
-  pm25: {
-    unit: "µg/m³",
-    description: "Mede partículas muito pequenas em suspensão no ar, quase invisíveis a olho nu.",
-    importance: "É essencial para acompanhar fumaça, poeira fina e riscos respiratórios, apoiando alertas de saúde pública e gestão de crises ambientais.",
-  },
-  qualidade_index: {
-    unit: "AQI",
-    description: "Resume a qualidade do ar em um índice fácil de entender, considerando vários poluentes.",
-    importance: "Facilita decisões rápidas sobre exposição ao ar livre, emissão de alertas e ações de proteção da população.",
-  },
-  umidade_solo: {
-    unit: "%",
-    description: "Mostra quanta água o solo está retendo no momento.",
-    importance: "Ajuda no controle de irrigação, na prevenção de seca e no acompanhamento de risco de erosão ou encharcamento.",
-  },
-  ph: {
-    unit: "pH",
-    description: "Indica se o solo está mais ácido, neutro ou alcalino.",
-    importance: "É importante para agricultura, fertilidade do solo e para entender se a área está adequada ao cultivo ou recuperação ambiental.",
-  },
-  temp_solo: {
-    unit: "°C",
-    description: "Mede a temperatura do solo onde as raízes e a umidade interagem.",
-    importance: "Ajuda a entender o desenvolvimento das plantas, a evaporação da água e o comportamento do solo em períodos de calor ou frio intenso.",
-  },
-  temperatura: {
-    unit: "°C",
-    description: "Mostra a temperatura do ar ao redor da estação.",
-    importance: "É uma das variáveis mais importantes para detectar ondas de calor, frio intenso e apoiar alertas meteorológicos e de saúde.",
-  },
-};
 
 function getTooltipContent(param: Parameter): ParameterTooltipContent {
   return (

@@ -108,7 +108,7 @@ export function WeatherCard({ title, icon, value, subtitle, isActive = false, on
                 </div>
 
                 <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Importância para monitoramento climático e gestão de riscos</p>
+                  <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">Importância</p>
                   <p className="mt-1 leading-relaxed text-gray-700">{tooltipInfo.importance}</p>
                 </div>
               </div>
