@@ -56,7 +56,6 @@ export function MapView({ mode = "public" }: MapViewProps) {
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden">
-      {/* Page header */}
       <div className="flex items-center gap-3 px-4 md:px-6 py-4 bg-white border-b border-gray-100 shadow-sm shrink-0">
 
         <Map className="text-tecsus-green w-5 h-5 shrink-0" />

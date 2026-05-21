@@ -130,8 +130,8 @@ export function Admin() {
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 lg:gap-6 mb-8">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
-                    Administradores cadastrados
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+                    Administradores Cadastrados
                 </h1>
 
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto">
@@ -171,17 +171,7 @@ export function Admin() {
                             <option value="true">Ativo</option>
                             <option value="false">Inativo</option>
                         </select>
-
-                        <button
-                            type="button"
-                            className="shrink-0 p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center"
-                            onClick={() => setFilters(DEFAULT_FILTERS)}
-                            title="Limpar filtros"
-                        >
-                            <X size={18} />
-                        </button>
                     </div>
-
 
                     <button
                         type="button"
