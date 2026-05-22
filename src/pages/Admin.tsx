@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Trash2, Pencil, Search, X } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { type Administrator, administratorService } from "../services/administrator-services";
@@ -244,9 +245,9 @@ export function Admin() {
                 onSuccess={handleFormSuccess}
             />
 
-            {isConfirmDeleteOpen && (
+            {isConfirmDeleteOpen && createPortal(
                 <div
-                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4 backdrop-blur-sm"
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
@@ -255,7 +256,8 @@ export function Admin() {
                             onConfirm={handleDeleteConfirm}
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </div>
     );

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Search,
   Settings2,
@@ -294,9 +295,9 @@ export function StationManage() {
 
       <CreateStationModal modal={createModal} />
       <EditStationModal modal={editModal} />
-      {limitsTarget && (
+      {limitsTarget && createPortal(
         <div
-          className="fixed inset-0 z-80 bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4"
+          className="fixed inset-0 z-[100] bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4"
           onClick={closeLimitsModal}
         >
           <div
@@ -309,7 +310,8 @@ export function StationManage() {
               onSuccess={closeLimitsModal}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       <DeleteStationModal
         isOpen={Boolean(deleteTarget)}

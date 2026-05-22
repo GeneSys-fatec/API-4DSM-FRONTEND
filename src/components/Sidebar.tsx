@@ -35,7 +35,7 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
     <>
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-[500] md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/40 z-[500] md:hidden transition-opacity"
           onClick={closeMenu}
         />
       )}

@@ -3,6 +3,7 @@ import { ParameterForm } from "@/components/forms/ParameterForm";
 import { TableBase } from "@/components/TableBody";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { parameterService } from "@/services/parameter-service";
 import { toast } from "react-toastify";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
@@ -200,10 +201,9 @@ export function Parameters() {
                     </div>
                 )}
             </div>
-            {modalOpen && (
+            {modalOpen && createPortal(
                 <div
-
-                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
@@ -214,18 +214,19 @@ export function Parameters() {
                             onSuccess={handleFormSuccess}
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
-            {confirmDeleteOpen && (
+            {confirmDeleteOpen && createPortal(
                 <div
-
-                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
                         <ConfirmDelete onClose={closeModal} onConfirm={handleDeleteConfirm} />
                     </div>
-                </div>
+                </div>,
+                document.body
             )
             }
         </div>

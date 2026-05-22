@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useCreateStationModal } from "../services/station-service";
@@ -55,11 +56,11 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
 
   if (!modal.isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4" role="dialog" aria-modal="true">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-4 pt-20 md:pt-4" role="dialog" aria-modal="true">
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/40 transition-opacity"
         onClick={handleClose}
       />
 
@@ -155,6 +156,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

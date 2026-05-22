@@ -88,7 +88,7 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
     };
 
     return (
-        <div className="w-[92vw] max-w-xl rounded-xl bg-white p-5 md:p-6 shadow-xl border border-gray-100">
+        <div className="w-[92vw] max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl bg-white p-5 md:p-6 shadow-xl border border-gray-100">
             <div className="mb-5 flex items-center justify-between gap-4">
                 <h1 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight">
                     {isEditMode ? "Editar parâmetro" : "Novo parâmetro"}

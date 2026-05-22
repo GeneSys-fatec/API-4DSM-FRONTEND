@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Edit2, Search, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { ConfirmDelete } from "../components/ConfirmDelete";
@@ -345,8 +346,8 @@ export function Alerts() {
         )}
       </div>
 
-      {isFormOpen && (
-        <div className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4" onClick={closeForm}>
+      {isFormOpen && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={closeForm}>
           <div onClick={(event) => event.stopPropagation()}>
             <AlertForm
               mode={editingAlert ? "edit" : "create"}
@@ -356,15 +357,17 @@ export function Alerts() {
               onSubmit={handleSubmit}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {alertToDelete && (
-        <div className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4" onClick={() => setAlertToDelete(null)}>
+      {alertToDelete && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={() => setAlertToDelete(null)}>
           <div onClick={(event) => event.stopPropagation()}>
             <ConfirmDelete onClose={() => setAlertToDelete(null)} onConfirm={handleDelete} />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
