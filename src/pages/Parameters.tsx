@@ -141,8 +141,8 @@ export function Parameters() {
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 mb-8">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-                    Parâmetros cadastrados
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                    Parâmetros Cadastrados
                 </h1>
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-3 w-full lg:w-auto lg:ml-auto">
                     <div className="relative w-full lg:w-[320px]">

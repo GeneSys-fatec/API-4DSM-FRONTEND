@@ -64,7 +64,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
         onClick={handleClose}
       />
 
-      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col max-h-[75vh] md:max-h-[90vh]">
+      <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden flex flex-col max-h-[90vh]">
         <div className="px-6 py-4 border-b border-gray-100 shrink-0">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -105,7 +105,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           </div>
         </div>
 
-        <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
+        <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
           {modal.errorMessage && (
             <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
               {modal.errorMessage}
@@ -117,8 +117,8 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
               <StationBasicForm form={modal.form} setForm={modal.setForm} />
             )}
             {activeTab === "parameters" && (
-              <ParameterSelectionForm 
-                selectedParams={selectedParams} 
+              <ParameterSelectionForm
+                selectedParams={selectedParams}
                 toggleParam={toggleParam}
                 isCreatingStation={true}
               />

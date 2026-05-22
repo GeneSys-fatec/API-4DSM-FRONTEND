@@ -190,14 +190,14 @@ export function ParameterForm({ onClose, mode, parameter, onSuccess }: Parameter
                 <div className="flex self-end gap-2">
                     <button
                         type="button"
-                        className="bg-gray-400 font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-gray-400 font-semibold text-sm p-2 px-4 text-white rounded-md opacity-80 hover:opacity-100 transition-opacity"
                         onClick={onClose}
                     >
                         Cancelar
                     </button>
                     <button
                         type="submit"
-                        className="bg-tecsus-green text-white font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-tecsus-green text-white font-semibold text-sm p-2 px-6 rounded-md opacity-80 hover:opacity-100 transition-opacity disabled:opacity-50"
                     >
                         {isEditMode ? "Salvar" : "Enviar"}
                     </button>

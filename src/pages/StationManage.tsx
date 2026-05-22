@@ -5,7 +5,6 @@ import {
   Settings2,
   Edit2,
   Trash2,
-  X,
 } from "lucide-react";
 import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
@@ -209,16 +208,7 @@ export function StationManage() {
               <option value="true">Ativa</option>
               <option value="false">Inativa</option>
             </select>
-
-            <button
-              className="shrink-0 p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors flex items-center justify-center"
-              onClick={() => setFilters(DEFAULT_FILTERS)}
-              title="Limpar filtros"
-            >
-              <X size={18} />
-            </button>
           </div>
-
 
           <button
             onClick={createModal.open}

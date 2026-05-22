@@ -64,9 +64,9 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
 
           <div className="flex flex-col pl-3 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
             <span className="text-sm font-bold text-gray-900">
-              Nome Administrador
+              Administrador
             </span>
-            <span className="text-xs text-gray-500">adm@email.com</span>
+            <span className="text-xs text-gray-500">admin@admin.com</span>
           </div>
         </div>
 
