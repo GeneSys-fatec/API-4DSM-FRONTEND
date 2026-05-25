@@ -59,7 +59,7 @@ export function StationSelect() {
 
   return (
     <div className="max-w-6xl mx-auto w-full p-4 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 md:gap-6 mb-8">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 lg:gap-6 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
             <MapPin className="text-tecsus-green w-6 h-6 md:w-8 md:h-8 shrink-0" />
@@ -71,7 +71,7 @@ export function StationSelect() {
           </p>
         </div>
 
-        <div className="relative w-full md:w-80 shrink-0">
+        <div className="relative w-full lg:w-80 shrink-0">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-gray-400" />
           </div>

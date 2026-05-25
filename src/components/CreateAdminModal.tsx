@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "react-toastify";
 import { administratorService } from "../services/administrator-services";
 import { AdminForm } from "./forms/AdminForm";
@@ -34,9 +35,9 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: Props) {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-[92vw] max-w-xl rounded-xl bg-white p-5 md:p-6 shadow-xl border border-gray-100" onClick={e => e.stopPropagation()}>
+  return createPortal(
+    <div className="fixed inset-0 z-[100] bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4" onClick={onClose}>
+      <div className="w-[92vw] max-w-xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-xl bg-white p-5 md:p-6 shadow-xl border border-gray-100" onClick={e => e.stopPropagation()}>
         <div className="mb-5 flex items-center justify-between gap-4">
           <h1 className="text-lg md:text-xl font-bold text-gray-900 tracking-tight">Novo administrador</h1>
           <button type="button" className="text-2xl text-gray-500 hover:text-gray-700 cursor-pointer" onClick={onClose}>&times;</button>
@@ -53,6 +54,7 @@ export function CreateAdminModal({ isOpen, onClose, onSuccess }: Props) {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

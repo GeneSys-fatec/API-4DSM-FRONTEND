@@ -4,7 +4,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { parameterService, type Parameter } from "@/services/parameter-service";
 import { stationParameterService } from "@/services/station-parameter-service";
 import { listPublicStations } from "@/services/station-service";
-import { measurementsService } from "@/services/measurements-service"; 
+import { measurementsService } from "@/services/measurements-service";
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons-dt';
 import 'datatables.net-buttons/js/buttons.html5.mjs';
@@ -57,9 +57,9 @@ export function WeatherTable() {
 
     const [stationName, setStationName] = useState<string>("");
     const [stationParams, setStationParams] = useState<Parameter[]>([]);
-    const [measurements, setMeasurements] = useState<MeasurementData[]>([]); 
+    const [measurements, setMeasurements] = useState<MeasurementData[]>([]);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-    
+
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
@@ -74,7 +74,7 @@ export function WeatherTable() {
         formatDateTime(item.collectedAt),
     ]), [measurements, stationName, id]);
 
-    
+
     useEffect(() => {
         let isMounted = true;
         const stationId = id ? Number.parseInt(id, 10) : 1;
@@ -86,9 +86,9 @@ export function WeatherTable() {
             }
 
             try {
-                
+
                 const [dbData, allParams, stationLinks, publicStations] = await Promise.all([
-                    measurementsService.getMeasurements(stationId, "30d"), 
+                    measurementsService.getMeasurements(stationId, "30d"),
                     parameterService.findAll(),
                     stationParameterService.findByStation(stationId),
                     listPublicStations()
@@ -101,7 +101,7 @@ export function WeatherTable() {
                     .filter((p): p is Parameter => p !== undefined);
 
                 setStationParams(activeParams);
-                setMeasurements(dbData.data); 
+                setMeasurements(dbData.data);
 
                 const currentStation = publicStations.find(s => Number(s.id) === stationId);
                 if (currentStation) {
@@ -130,7 +130,7 @@ export function WeatherTable() {
         };
     }, [id]);
 
-    
+
     useEffect(() => {
         exportDateRangeRef.current = {
             from: fromDate || undefined,
@@ -142,7 +142,7 @@ export function WeatherTable() {
         }
     }, [fromDate, toDate, isInvalidExportRange]);
 
-    
+
     useEffect(() => {
         if (isLoading || !tableRef.current || dataTableRef.current) {
             return;
@@ -166,7 +166,7 @@ export function WeatherTable() {
             if (isInvalidExportRangeRef.current) return true;
 
             const resolvedRowData = Array.isArray(rowData) ? rowData : Array.isArray(searchData) ? searchData : [];
-            const rowDateValue = resolvedRowData[4]; 
+            const rowDateValue = resolvedRowData[4];
             return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
         };
 
@@ -190,18 +190,26 @@ export function WeatherTable() {
                 { title: "Valor", data: 3 },
                 { title: "Data/hora", data: 4 },
             ],
+
             createdRow: (row: HTMLTableRowElement) => {
                 row.classList.add('border-b', 'border-gray-50', 'last:border-0', 'transition-all');
                 const cells = Array.from(row.querySelectorAll('td')) as HTMLTableCellElement[];
-                if (cells[0]) cells[0].className = 'px-6 py-4 text-sm text-gray-500 font-medium whitespace-nowrap';
-                for (let i = 1; i < cells.length; i++) {
-                    if (i === 3) cells[i].className = 'px-6 py-4 text-sm font-medium text-gray-900';
-                    else cells[i].className = 'px-6 py-4 text-sm text-gray-500';
+
+                if (cells[0]) {
+                    cells[0].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500', 'font-medium', 'whitespace-nowrap');
+                }
+                if (cells[1]) {
+                    cells[1].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
+                }
+                for (let i = 2; i < cells.length; i++) {
+                    if (i === 3) cells[i].classList.add('px-6', 'py-4', 'text-sm', 'font-medium', 'text-gray-900');
+                    else cells[i].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
                 }
             },
+
             pageLength: 10,
             destroy: true,
-            autoWidth: false, 
+            autoWidth: false,
             layout: {
                 topStart: {
                     buttons: getDefaultExportButtons(exportRowsByRange, { includePdf: pdfReady })
@@ -219,7 +227,7 @@ export function WeatherTable() {
                 { targets: 2, searchable: true }
             ]
         });
-        
+
         dataTableRef.current = table;
 
         const wrapper = table.table().container() as HTMLElement;
@@ -228,8 +236,9 @@ export function WeatherTable() {
             if (generatedThead) {
                 const ths = Array.from(generatedThead.querySelectorAll('th')) as HTMLTableCellElement[];
                 ths.forEach((th) => {
-                    th.className = 'px-6 py-4 text-xs font-bold text-gray-400 uppercase';
+                    th.classList.add('px-6', 'py-4', 'text-xs', 'font-bold', 'text-gray-400', 'uppercase');
                 });
+
             }
         } catch {
             void 0;
@@ -248,8 +257,12 @@ export function WeatherTable() {
 
             if (topEnd) {
                 const searchElement = topEnd.querySelector<HTMLElement>(".dt-search");
-                if (searchElement) topEnd.insertBefore(exportRangeSlot, searchElement);
-                else topEnd.prepend(exportRangeSlot);
+                if (searchElement) {
+                    topEnd.appendChild(exportRangeSlot);
+                } else {
+                    topEnd.prepend(exportRangeSlot);
+                }
+
             } else {
                 topControlsRow.appendChild(exportRangeSlot);
             }
@@ -372,10 +385,11 @@ export function WeatherTable() {
                         ) : null}
 
                         {!isLoading && (
-                           <div className="weather-table-card bg-white rounded-xl shadow-sm border border-gray-100 w-full overflow-x-auto">
-                               <table ref={tableRef} id="dataTable" className="w-full text-left border-collapse min-w-[720px]" />
-                           </div>
+                            <div className="weather-table-card bg-white rounded-xl shadow-sm border border-gray-100 w-full overflow-x-auto">
+                                <table ref={tableRef} id="dataTable" className="w-full text-left border-collapse min-w-full md:min-w-[720px]" />
+                            </div>
                         )}
+
                         <div ref={paginationHostRef} className="weather-table-pagination mt-4" />
                     </>
                 )}
