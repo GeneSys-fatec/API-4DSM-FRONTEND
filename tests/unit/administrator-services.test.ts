@@ -90,6 +90,26 @@ describe('Administrator Service (Frontend)', () => {
     expect(result.id).toBe(2);
   });
 
+  it('create: deve lançar erro se a criação falhar com mensagem do servidor', async () => {
+    const payload = { name: 'Erro Admin', email: 'erro@teste.com' };
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Email já cadastrado' }),
+    });
+
+    await expect(administratorService.create(payload)).rejects.toThrow('Email já cadastrado');
+  });
+
+  it('create: deve lançar erro genérico se a criação falhar sem mensagem do servidor', async () => {
+    const payload = { name: 'Erro Admin', email: 'erro@teste.com' };
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(administratorService.create(payload)).rejects.toThrow('Erro ao criar administrador');
+  });
+
   it('update: deve mapear o payload corretamente (newName, newEmail) e enviar PUT', async () => {
     const updateData = { name: 'Admin Editado', email: 'editado@teste.com', password: '321' };
     getFetchMock().mockResolvedValueOnce({
@@ -111,6 +131,26 @@ describe('Administrator Service (Frontend)', () => {
     expect(result.id).toBe(1);
   });
 
+  it('update: deve lançar erro se a atualização falhar com mensagem do servidor', async () => {
+    const updateData = { name: 'Erro Editado' };
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Administrador não encontrado' }),
+    });
+
+    await expect(administratorService.update(1, updateData)).rejects.toThrow('Administrador não encontrado');
+  });
+
+  it('update: deve lançar erro genérico se a atualização falhar sem mensagem do servidor', async () => {
+    const updateData = { name: 'Erro Editado' };
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(administratorService.update(1, updateData)).rejects.toThrow('Erro ao atualizar administrador');
+  });
+
   it('delete: deve excluir um administrador e não enviar cabeçalhos bloqueantes', async () => {
     getFetchMock().mockResolvedValueOnce({
       ok: true,
@@ -129,12 +169,21 @@ describe('Administrator Service (Frontend)', () => {
     expect(result).toBe(true);
   });
 
-  it('delete: deve lançar erro se o backend recusar a exclusão', async () => {
+  it('delete: deve lançar erro se o backend recusar a exclusão com mensagem', async () => {
     getFetchMock().mockResolvedValueOnce({
       ok: false,
       json: async () => ({ error: 'Este administrador não pode ser excluído' }),
     });
 
     await expect(administratorService.delete(1)).rejects.toThrow('Este administrador não pode ser excluído');
+  });
+
+  it('delete: deve lançar erro genérico se o backend recusar a exclusão sem mensagem', async () => {
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({}),
+    });
+
+    await expect(administratorService.delete(1)).rejects.toThrow('Erro ao deletar administrador');
   });
 });

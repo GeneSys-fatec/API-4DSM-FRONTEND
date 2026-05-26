@@ -130,4 +130,64 @@ describe("alert-service (api)", () => {
     expect(String(url)).toContain("/alerts/delete/9");
     expect(init?.method).toBe("DELETE");
   });
+
+  it("deve repassar todos os filtros na listagem de alertas", async () => {
+    mockFetchJsonOnce([]);
+
+    await listAlerts({
+      q: "temperatura",
+      stationId: 1,
+      parameterId: 5,
+      idTypeParam: 3,
+      status: "active",
+      user: "admin",
+      from: "2026-01-01",
+      to: "2026-12-31",
+    });
+
+    const [url] = getFetchMock().mock.calls[0]!;
+    const urlStr = String(url);
+    expect(urlStr).toContain("q=temperatura");
+    expect(urlStr).toContain("stationId=1");
+    expect(urlStr).toContain("parameterId=5");
+    expect(urlStr).toContain("idTypeParam=3");
+    expect(urlStr).toContain("status=active");
+    expect(urlStr).toContain("user=admin");
+    expect(urlStr).toContain("from=2026-01-01");
+    expect(urlStr).toContain("to=2026-12-31");
+  });
+
+  it("deve lançar erro quando listAlerts recebe resposta não-ok", async () => {
+    mockFetchJsonOnce({}, { ok: false, status: 500 });
+
+    await expect(listAlerts()).rejects.toThrow("Erro ao listar alertas");
+  });
+
+  it("deve lançar erro quando createAlert recebe resposta não-ok", async () => {
+    mockFetchJsonOnce({}, { ok: false, status: 400 });
+
+    await expect(
+      createAlert({
+        parameterId: 1,
+        measuredValue: 10,
+        occurredAt: "2026-03-31T12:00:00.000Z",
+        description: "Teste",
+      }),
+    ).rejects.toThrow("Erro ao criar alerta");
+  });
+
+  it("deve lançar erro quando updateAlert recebe resposta não-ok", async () => {
+    mockFetchJsonOnce({}, { ok: false, status: 404 });
+
+    await expect(
+      updateAlert("7", { description: "Atualizado" }),
+    ).rejects.toThrow("Erro ao atualizar alerta");
+  });
+
+  it("deve lançar erro quando deleteAlert recebe resposta não-ok", async () => {
+    mockFetchJsonOnce({}, { ok: false, status: 404 });
+
+    await expect(deleteAlert("99")).rejects.toThrow("Erro ao deletar alerta");
+  });
 });
+
