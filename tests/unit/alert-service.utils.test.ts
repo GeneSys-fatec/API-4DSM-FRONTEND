@@ -84,32 +84,4 @@ describe("alert-service (utils)", () => {
     });
   });
 
-  it.skip("deve filtrar alertas por descrição, parâmetro e status", () => {
-    // const alerts = [
-    //   {
-    //     id: "1",
-    //     parameterId: 1,
-    //     measurementId: 1,
-    //     measuredValue: 20,
-    //     occurredAt: "2026-03-31T12:00:00.000Z",
-    //     description: "Temperatura alta",
-    //     status: "active" as const,
-    //   },
-    //   {
-    //     id: "2",
-    //     parameterId: 2,
-    //     measurementId: 2,
-    //     measuredValue: 40,
-    //     occurredAt: "2026-03-31T13:00:00.000Z",
-    //     description: "Umidade baixa",
-    //     status: "resolved" as const,
-    //   },
-    // ];
-
-    // O método alertFilter não existe mais ou foi renomeado, teste desativado.
-    // expect(alertFilter(alerts, "")).toHaveLength(2);
-    // expect(alertFilter(alerts, "temperatura")).toHaveLength(1);
-    // expect(alertFilter(alerts, "2")).toHaveLength(1);
-    // expect(alertFilter(alerts, "resolved")).toHaveLength(1);
-  });
 });
