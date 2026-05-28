@@ -244,7 +244,8 @@ export function Dashboard() {
 
     const fetchAndNotifyAlerts = async () => {
       try {
-        const allAlerts = await listAlerts();
+        const result = await listAlerts();
+        const allAlerts = result.data;
 
         const activeStationAlerts = allAlerts.filter(
           (alert) =>

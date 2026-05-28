@@ -71,6 +71,7 @@ describe("alert-service (utils)", () => {
       occurredAt: "2026-03-31T12:00:00.000Z",
       description: "Fora da faixa",
       status: "active",
+      isRead: false,
     });
 
     expect(mapped).toEqual({
@@ -81,6 +82,7 @@ describe("alert-service (utils)", () => {
       occurredAt: "2026-03-31T12:00:00.000Z",
       description: "Fora da faixa",
       status: "active",
+      isRead: false,
     });
   });
 

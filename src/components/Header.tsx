@@ -91,9 +91,8 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           </Link>
         )}
 
-        {/* Notificações (Visível Apenas para Admin) */}
-        {isAuthenticated && (
-          <>
+        {/* Notificações */}
+        <>
             <button
               onClick={handleToggleNotificationPanel}
               className="relative p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -152,8 +151,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
                 </div>
               </div>
             )}
-          </>
-        )}
+        </>
       </div>
     </header>
   );
