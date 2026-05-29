@@ -88,4 +88,18 @@ describe('Auth Service (Frontend)', () => {
       authService.login({ email: 'admin@tecsus.com', password: '123' })
     ).rejects.toThrow('Erro ao realizar login');
   });
+
+  it('deve realizar login com sucesso e retornar texto puro se content-type for nulo', async () => {
+    const mockTokenText = "token-texto-nulo";
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      headers: { get: vi.fn().mockReturnValue(null) },
+      text: async () => mockTokenText,
+    });
+
+    const payload = { email: 'admin@tecsus.com', password: 'senha' };
+    const result = await authService.login(payload);
+
+    expect(result).toBe(mockTokenText);
+  });
 });

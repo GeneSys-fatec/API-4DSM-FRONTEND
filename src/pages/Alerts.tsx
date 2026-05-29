@@ -40,7 +40,9 @@ const DEFAULT_FILTERS: AlertsFiltersState = {
 };
 
 function formatDateTime(isoDate: string): string {
+  if (!isoDate) return "Data indisponível";
   const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "Data inválida";
   return date.toLocaleString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -79,8 +81,8 @@ export function Alerts() {
     setErrorMessage(null);
 
     try {
-      const data = await listAlerts(parsedFilters);
-      setAlerts(data);
+      const result = await listAlerts(parsedFilters);
+      setAlerts(result.data);
     } catch {
       setErrorMessage("Não foi possível carregar os alertas.");
     } finally {

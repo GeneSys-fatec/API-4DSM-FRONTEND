@@ -156,7 +156,7 @@ export function Dashboard() {
 
         const currentValues: Record<string, number> = {};
         measurementsResult.data.forEach((m) => {
-          const paramId = String(m.idParameter.id); 
+          const paramId = String(m.idParameter.id);
           if (currentValues[paramId] === undefined) {
             currentValues[paramId] = m.value;
           }
@@ -244,18 +244,24 @@ export function Dashboard() {
 
     const fetchAndNotifyAlerts = async () => {
       try {
-        const allAlerts = await listAlerts();
+        const result = await listAlerts();
+        const allAlerts = result.data;
 
-        const activeStationAlerts = allAlerts.filter(
-          (alert) =>
-            alert.status === "active" &&
-            stationParamIds.includes(alert.parameterId),
-        );
+        const activeStationAlerts = allAlerts
+          .filter(alert => alert.status === "active" && stationParamIds.includes(alert.parameterId))
+          .map(alert => {
+            const param = stationParams.find(p => p.linkId === alert.parameterId);
+            return {
+              ...alert,
+              parameterName: param?.name ?? alert.parameterName,
+            };
+          });
 
         if (activeStationAlerts.length > 0) {
           const newAlerts = registerGeneratedAlerts(
             stationId,
             activeStationAlerts as Parameters<typeof registerGeneratedAlerts>[1],
+            stationName,
           );
 
           if (newAlerts.length === 1) {
@@ -280,7 +286,7 @@ export function Dashboard() {
     const intervalId = window.setInterval(fetchAndNotifyAlerts, 30_000);
 
     return () => window.clearInterval(intervalId);
-  }, [stationId, stationParams, registerGeneratedAlerts]);
+  }, [stationId, stationParams, stationName, registerGeneratedAlerts]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
@@ -434,7 +440,7 @@ export function Dashboard() {
                       </label>
                     </div>
 
-                    
+
                     {(customFrom || customTo) && (
                       <button
                         type="button"

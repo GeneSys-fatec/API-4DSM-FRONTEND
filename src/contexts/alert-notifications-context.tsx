@@ -26,6 +26,7 @@ interface AlertNotificationsContextValue {
   registerGeneratedAlerts: (
     stationId: number,
     alerts: AlertModel[],
+    stationName?: string,
   ) => AlertNotificationItem[];
   markAllAsSeen: () => void;
   clearNotifications: () => void;
@@ -42,12 +43,14 @@ export function AlertNotificationsProvider({ children }: { children: ReactNode }
   const registerGeneratedAlerts = useCallback((
     stationId: number,
     alerts: AlertModel[],
+    stationName?: string,
   ): AlertNotificationItem[] => {
     if (alerts.length === 0) return [];
 
     const rawNotifications: NotificationAlertInput[] = alerts.map((alert) => ({
       ...alert,
       stationId,
+      stationName: stationName ?? alert.stationName,
     }));
 
     const { acceptedAlerts, seenMap: nextSeenMap } = dedupeGeneratedAlerts({

@@ -74,7 +74,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
 
       <div className="flex items-center gap-3 md:gap-5 ml-auto md:ml-0" ref={notificationPanelRef}>
         
-        {/* Botão Dinâmico de Navegação */}
         {isAuthenticated ? (
           <Link
             to="/admin/selecionar-estacao"
@@ -91,9 +90,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           </Link>
         )}
 
-        {/* Notificações (Visível Apenas para Admin) */}
-        {isAuthenticated && (
-          <>
+        <>
             <button
               onClick={handleToggleNotificationPanel}
               className="relative p-2 rounded-full hover:bg-white/10 transition-colors focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -144,7 +141,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
                           {notification.description}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          Estação {notification.stationId} • Parâmetro #{notification.parameterId} • {formatDateTime(notification.occurredAt)}
+                          {notification.stationName} • {notification.parameterName} • {formatDateTime(notification.occurredAt)}
                         </p>
                       </div>
                     ))
@@ -152,8 +149,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
                 </div>
               </div>
             )}
-          </>
-        )}
+        </>
       </div>
     </header>
   );
