@@ -74,7 +74,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
 
       <div className="flex items-center gap-3 md:gap-5 ml-auto md:ml-0" ref={notificationPanelRef}>
         
-        {/* Botão Dinâmico de Navegação */}
         {isAuthenticated ? (
           <Link
             to="/admin/selecionar-estacao"
@@ -91,7 +90,6 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
           </Link>
         )}
 
-        {/* Notificações */}
         <>
             <button
               onClick={handleToggleNotificationPanel}
@@ -143,7 +141,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
                           {notification.description}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">
-                          Estação {notification.stationId} • Parâmetro #{notification.parameterId} • {formatDateTime(notification.occurredAt)}
+                          {notification.stationName} • {notification.parameterName} • {formatDateTime(notification.occurredAt)}
                         </p>
                       </div>
                     ))

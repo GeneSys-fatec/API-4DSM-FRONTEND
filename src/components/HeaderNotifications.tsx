@@ -10,7 +10,6 @@ import {
 } from "../services/alert-service";
 import { API_URL } from "../services/api";
 
-// Formata a data ISO e resolve o problema de 'Invalid Date'
 function formatLocalTime(isoDate?: string) {
   if (!isoDate) return "Data indisponível";
   const date = new Date(isoDate);
@@ -30,14 +29,12 @@ export function HeaderNotifications() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Contador reflete visualmente a quantidade de notificações não lidas
   const unreadCount = alerts.filter(a => !a.isRead).length;
 
   useEffect(() => {
-    // 1. Fetch Inicial: Carrega o histórico ao abrir a página
     const fetchHistory = async () => {
       try {
-        const result = await listAlerts({ limit: 50 }); // Limita para performance no dropdown
+        const result = await listAlerts({ limit: 50 }); 
         setAlerts(result.data || []);
       } catch (error) {
         console.error("Erro ao carregar histórico de alertas", error);
@@ -45,7 +42,6 @@ export function HeaderNotifications() {
     };
     void fetchHistory();
 
-    // 2. Conexão SSE: Escuta os alertas da API em tempo real
     const eventSource = new EventSource(`${API_URL}/alerts/stream`);
 
     eventSource.onmessage = (event) => {
@@ -58,7 +54,6 @@ export function HeaderNotifications() {
           const newAlerts = [...currentAlerts];
 
           incomingAlerts.forEach((incoming) => {
-            // Garante que o mesmo ID de alerta não crie um loop duplicado na interface
             const exists = newAlerts.some((a) => a.id === String(incoming.id));
             
             if (!exists && !incoming.isRead) {
@@ -68,10 +63,8 @@ export function HeaderNotifications() {
               const title = incoming.titulo || "Alerta Climático";
               const desc = incoming.description || `Medição de ${incoming.measuredValue} fora do limite.`;
               
-              // Dispara o Toast Flutuante no momento exato em que ocorre o vazamento de parâmetro
               toast.error(`${station} - ${title}: ${desc}`, { autoClose: 8000 });
 
-              // Empilha a nova notificação no topo do array
               newAlerts.unshift({
                 id: String(incoming.id),
                 parameterId: incoming.parameterId || 0,
@@ -80,7 +73,9 @@ export function HeaderNotifications() {
                 occurredAt: incoming.timestamp || incoming.occurredAt || incoming.triggeredAt || new Date().toISOString(),
                 description: desc,
                 status: incoming.status || "active",
-                isRead: false
+                isRead: false,
+                stationName: incoming.idParameter?.idStation?.name ?? "Estação Desconhecida",
+                parameterName: incoming.idParameter?.idTypeParam?.name ?? "Parâmetro Desconhecido",
               });
             }
           });
@@ -95,7 +90,6 @@ export function HeaderNotifications() {
     return () => eventSource.close();
   }, []);
 
-  // Listener para fechar o dropdown caso o usuário clique em qualquer outro canto da tela
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -152,7 +146,9 @@ export function HeaderNotifications() {
                   <div key={alert.id} className={`p-4 border-b border-gray-50 flex gap-3 transition-colors ${alert.isRead ? 'bg-white opacity-70' : 'bg-red-50/60'}`}>
                     <div className="flex-1">
                       <p className={`text-sm ${alert.isRead ? 'text-gray-600' : 'text-gray-900 font-semibold'}`}>{alert.description}</p>
-                      <span className="text-xs text-gray-500 mt-1 block">{formatLocalTime(alert.occurredAt)}</span>
+                      <span className="text-xs text-gray-500 mt-1 block">
+                        {alert.stationName ?? "Estação desconhecida"} • {alert.parameterName ?? "Parâmetro desconhecido"} • {formatLocalTime(alert.occurredAt)}
+                      </span>
                     </div>
                     {!alert.isRead && ( <button onClick={() => handleMarkAsRead(alert.id)} className="text-gray-400 hover:text-tecsus-green shrink-0 self-start mt-1" title="Marcar como lida"><X className="w-4 h-4" /></button> )}
                   </div>

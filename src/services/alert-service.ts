@@ -2,13 +2,19 @@ import { apiFetch } from './api';
 
 export interface AlertApi {
   id: number;
-  parameterId: number;
-  measurementId: number;
-  measuredValue: number;
-  occurredAt: string;
-  description: string;
-  status: "active" | "resolved";
+  idParameter?: {
+    id: number;
+    idStation?: { id: number; name: string; };
+    idTypeParam?: { id: number; name: string; };
+  };
+  idMeasurement?: { id: number };
+  titulo?: string;
+  texto?: string;
+  triggeredValue: number;
+  violatedLimit?: number;
+  triggeredAt: string;
   isRead?: boolean;
+  status: "active" | "resolved";
 }
 
 export interface AlertModel {
@@ -20,6 +26,8 @@ export interface AlertModel {
   description: string;
   status: "active" | "resolved";
   isRead?: boolean;
+  stationName?: string;  
+  parameterName?: string; 
 }
 
 export interface AlertPayload {
@@ -58,13 +66,15 @@ export interface AlertListFilters {
 export function mapAlertApiToModel(alert: AlertApi): AlertModel {
   return {
     id: String(alert.id),
-    parameterId: alert.parameterId,
-    measurementId: alert.measurementId,
-    measuredValue: Number(alert.measuredValue),
-    occurredAt: alert.occurredAt,
-    description: alert.description,
+    parameterId: alert.idParameter?.id ?? 0,
+    measurementId: alert.idMeasurement?.id ?? 0,
+    measuredValue: Number(alert.triggeredValue),
+    occurredAt: alert.triggeredAt,
+    description: alert.texto ?? alert.titulo ?? "",
     status: alert.status,
     isRead: alert.isRead,
+    stationName: alert.idParameter?.idStation?.name ?? undefined,
+    parameterName: alert.idParameter?.idTypeParam?.name ?? undefined,
   };
 }
 
