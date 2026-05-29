@@ -448,7 +448,7 @@ body {
   height: auto;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .weather-table-controls .dt-layout-row {
     flex-direction: column;
     align-items: stretch;
@@ -460,6 +460,8 @@ body {
   .weather-table-controls .weather-table-date-range-slot {
     width: 100%;
     max-width: none;
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .weather-table-controls .dt-layout-end {

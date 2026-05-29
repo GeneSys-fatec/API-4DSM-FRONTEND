@@ -3,6 +3,7 @@ import { ParameterForm } from "@/components/forms/ParameterForm";
 import { TableBase } from "@/components/TableBody";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { parameterService } from "@/services/parameter-service";
 import { toast } from "react-toastify";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
@@ -39,6 +40,7 @@ const columns = [
         header: "Key",
         render: (item: Parameter) => item.json_key,
     },
+
     {
         key: "unit",
         header: "Unidade",
@@ -56,6 +58,7 @@ const columns = [
         tdClassName: "font-mono",
         render: (item: Parameter) => item.offset,
     },
+
 ];
 
 export function Parameters() {
@@ -137,12 +140,12 @@ export function Parameters() {
 
     return (
         <div className="max-w-8xl mx-auto w-full p-4 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6 mb-8">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
-                    Parâmetros cadastrados
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 lg:gap-6 mb-8">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight flex items-center gap-3">
+                    Parâmetros Cadastrados
                 </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 w-full md:w-auto md:ml-auto">
-                    <div className="relative w-full md:w-[320px]">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-end gap-3 w-full lg:w-auto lg:ml-auto">
+                    <div className="relative w-full lg:w-[320px]">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
                         </div>
@@ -161,11 +164,12 @@ export function Parameters() {
                     </div>
                     <button
                         type="button"
-                        className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
+                        className="bg-tecsus-green text-white font-semibold text-sm flex p-2 px-4 gap-2 opacity-90 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm w-full lg:w-auto justify-center"
                         onClick={openCreateModal}
                     >
                         Cadastrar parâmetro
                     </button>
+
                 </div>
             </div>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -187,10 +191,7 @@ export function Parameters() {
                                 </div>
                             )}
                         />
-                        <button type="button" className="md:hidden w-full py-1 overflow-x-auto bg-tecsus-green text-white font-bold text-sm opacity-80 hover:opacity-100 cursor-pointer"
-                            onClick={openCreateModal}>
-                            +
-                        </button>
+
                     </>
                 ) : (
                     <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
@@ -200,10 +201,9 @@ export function Parameters() {
                     </div>
                 )}
             </div>
-            {modalOpen && (
+            {modalOpen && createPortal(
                 <div
-                    
-                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
@@ -214,18 +214,19 @@ export function Parameters() {
                             onSuccess={handleFormSuccess}
                         />
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
-            {confirmDeleteOpen && (
+            {confirmDeleteOpen && createPortal(
                 <div
-                    
-                    className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
                         <ConfirmDelete onClose={closeModal} onConfirm={handleDeleteConfirm} />
                     </div>
-                </div>
+                </div>,
+                document.body
             )
             }
         </div>

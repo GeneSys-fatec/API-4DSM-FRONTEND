@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Search,
   Settings2,
   Edit2,
   Trash2,
-  X,
 } from "lucide-react";
 import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
@@ -147,6 +147,7 @@ export function StationManage() {
         <span className="text-gray-600">{item.codigo || "-"}</span>
       ),
     },
+
     {
       key: "isActive",
       header: "STATUS",
@@ -165,14 +166,15 @@ export function StationManage() {
 
   return (
     <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-800">
           Estações Cadastradas
         </h1>
 
-        <div className="flex flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto">
 
-          <div className="relative w-full sm:w-64 shrink-0">
+
+          <div className="relative w-full lg:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
             </div>
@@ -190,35 +192,31 @@ export function StationManage() {
             />
           </div>
 
-          <select
-            value={filters.status}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                status: e.target.value as StationFiltersState["status"],
-              }))
-            }
-            className="w-full sm:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
-          >
-            <option value="">Todos os status</option>
-            <option value="true">Ativa</option>
-            <option value="false">Inativa</option>
-          </select>
 
-          <button
-            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors w-full sm:w-auto flex items-center justify-center"
-            onClick={() => setFilters(DEFAULT_FILTERS)}
-            title="Limpar filtros"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2 w-full lg:w-auto">
+            <select
+              value={filters.status}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  status: e.target.value as StationFiltersState["status"],
+                }))
+              }
+              className="flex-1 lg:flex-none lg:w-auto px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+            >
+              <option value="">Todos os status</option>
+              <option value="true">Ativa</option>
+              <option value="false">Inativa</option>
+            </select>
+          </div>
 
           <button
             onClick={createModal.open}
-            className="bg-tecsus-green text-white font-semibold text-sm hidden md:flex p-2 px-4 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm"
+            className="bg-tecsus-green text-white font-semibold text-sm flex p-2 px-4 gap-2 opacity-90 hover:opacity-100 cursor-pointer rounded-md transition-all shadow-sm w-full lg:w-auto justify-center"
           >
             Cadastrar estação
           </button>
+
         </div>
       </div>
 
@@ -287,13 +285,13 @@ export function StationManage() {
 
       <CreateStationModal modal={createModal} />
       <EditStationModal modal={editModal} />
-      {limitsTarget && (
+      {limitsTarget && createPortal(
         <div
-          className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4"
           onClick={closeLimitsModal}
         >
           <div
-            className="w-full max-w-[96vw] md:max-w-5xl max-h-[90vh] mx-auto"
+            className="w-full max-w-[96vw] md:max-w-5xl max-h-[55vh] md:max-h-[90vh] mx-auto"
             onClick={(event) => event.stopPropagation()}
           >
             <ParameterByStation
@@ -302,7 +300,8 @@ export function StationManage() {
               onSuccess={closeLimitsModal}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       <DeleteStationModal
         isOpen={Boolean(deleteTarget)}

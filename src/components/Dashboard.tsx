@@ -297,19 +297,19 @@ export function Dashboard() {
 
   return (
     <div className="min-h-full flex flex-col bg-bg-dashboard">
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
             {isAdminRoute && (
               <button
                 onClick={() => navigate("/admin/selecionar-estacao")}
                 className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
                 aria-label="Voltar"
               >
-                <ArrowLeft size={24} />
+                <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 tracking-tight truncate">
               {stationName
                 ? stationName
                 : id
@@ -367,22 +367,25 @@ export function Dashboard() {
           )}
         </div>
 
-        {/* GRÁFICO E FILTROS */}
         {parametroAtivo && (
-          <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-100 md:h-112.5">
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0">
+          <div className="bg-white p-3 pb-10 sm:p-4 md:p-6 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 flex flex-col h-auto md:h-[500px] lg:h-[600px]">
+
+
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0 col-span-1 lg:col-span-auto">
                 Gráfico de {parametroAtivo.name}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end sm:ml-auto">
+              <div className="flex flex-col xl:flex-row flex-wrap items-start xl:items-center gap-3 w-full lg:w-auto lg:justify-end lg:ml-auto">
                 <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+
                   {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map(
                     (periodo) => (
                       <button
                         key={periodo}
                         onClick={() => setPeriodoAtivo(periodo)}
-                        className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                        className={`sm:flex-none ${getPeriodButtonClass(periodo)}`}
                       >
                         {periodo === "24h"
                           ? "Últimas 24h"
@@ -397,27 +400,39 @@ export function Dashboard() {
                 </div>
 
                 {periodoAtivo === "custom" ? (
-                  <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
-                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
-                      De:
-                      <input
-                        type="date"
-                        value={customFrom}
-                        max={customTo || undefined}
-                        onChange={(event) => setCustomFrom(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
-                      Até:
-                      <input
-                        type="date"
-                        value={customTo}
-                        min={customFrom || undefined}
-                        onChange={(event) => setCustomTo(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
-                      />
-                    </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm bg-gray-50 p-2 sm:p-1 rounded-lg border border-gray-100 w-full lg:w-auto">
+
+                    <button
+                      className="sm:hidden p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 self-end -mt-1 -mr-1"
+                      onClick={clearPeriodFilters}
+                      title="Limpar filtros"
+                    >
+                      <X size={18} />
+                    </button>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-none sm:flex sm:items-center gap-2 w-full sm:w-auto">
+
+                      <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                        De:
+                        <input
+                          type="date"
+                          value={customFrom}
+                          max={customTo || undefined}
+                          onChange={(event) => setCustomFrom(event.target.value)}
+                          className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        />
+                      </label>
+                      <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                        Até:
+                        <input
+                          type="date"
+                          value={customTo}
+                          min={customFrom || undefined}
+                          onChange={(event) => setCustomTo(event.target.value)}
+                          className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        />
+                      </label>
+                    </div>
 
                     
                     {(customFrom || customTo) && (
@@ -443,7 +458,7 @@ export function Dashboard() {
               </p>
             ) : null}
 
-            <div className="flex-1 w-full min-h-0 pb-4">
+            <div className="flex-1 w-full min-h-0 pb-2 sm:pb-3 md:pb-4">
               <DashboardChart
                 parametro={parametroAtivo}
                 periodo={periodoAtivo}

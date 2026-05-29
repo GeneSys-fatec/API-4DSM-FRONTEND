@@ -40,7 +40,7 @@ export function TableBase<T>({
               </th>
             ))}
             {renderActions ? (
-              <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Ações</th>
+              <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right whitespace-nowrap">Ações</th>
             ) : null}
           </tr>
         </thead>
@@ -59,7 +59,8 @@ export function TableBase<T>({
                   {column.render(item, index)}
                 </td>
               ))}
-              {renderActions ? <td className="px-6 py-4 text-right">{renderActions(item, index)}</td> : null}
+              {renderActions ? <td className="px-6 py-4 text-right whitespace-nowrap">{renderActions(item, index)}</td> : null}
+
             </tr>
           ))}
         </tbody>

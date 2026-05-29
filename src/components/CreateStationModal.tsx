@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import { useCreateStationModal } from "../services/station-service";
@@ -55,11 +56,11 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
 
   if (!modal.isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start md:items-center justify-center p-4 pt-20 md:pt-4" role="dialog" aria-modal="true">
       <button
         type="button"
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/40 transition-opacity"
         onClick={handleClose}
       />
 
@@ -104,7 +105,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           </div>
         </div>
 
-        <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1">
+        <div className="px-6 py-5 overflow-y-auto custom-scrollbar flex-1 min-h-0">
           {modal.errorMessage && (
             <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">
               {modal.errorMessage}
@@ -116,8 +117,8 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
               <StationBasicForm form={modal.form} setForm={modal.setForm} />
             )}
             {activeTab === "parameters" && (
-              <ParameterSelectionForm 
-                selectedParams={selectedParams} 
+              <ParameterSelectionForm
+                selectedParams={selectedParams}
                 toggleParam={toggleParam}
                 isCreatingStation={true}
               />
@@ -155,6 +156,7 @@ export function CreateStationModal({ modal }: { modal: CreateStationModalState }
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

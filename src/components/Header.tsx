@@ -57,7 +57,7 @@ export function Header({ toggleMobileMenu }: HeaderProps) {
   };
 
   return (
-    <header className="bg-tecsus-green text-white h-16 px-4 md:px-8 flex items-center justify-between shadow-md shrink-0 relative">
+    <header className="bg-tecsus-green text-white h-16 px-4 md:px-8 flex items-center justify-between shadow-md shrink-0 relative z-50">
       <div className="flex items-center md:hidden">
         <button
           onClick={toggleMobileMenu}
