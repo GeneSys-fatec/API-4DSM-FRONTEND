@@ -4,6 +4,9 @@ import {
   deleteAlert,
   listAlerts,
   updateAlert,
+  getEmptyAlertPayload,
+  mapAlertApiToModel,
+  validateAlertPayload,
   type AlertApi,
 } from "../../src/services/alert-service";
 
@@ -29,6 +32,89 @@ function mockFetchJsonOnce(data: unknown, init?: { ok?: boolean; status?: number
   });
 }
 
+describe("alert-service (utils)", () => {
+  it("deve criar payload inicial vazio", () => {
+    expect(getEmptyAlertPayload()).toEqual({
+      parameterId: 0,
+      measuredValue: 0,
+      occurredAt: "",
+      description: "",
+    });
+  });
+
+  it("deve validar campos obrigatórios", () => {
+    expect(
+      validateAlertPayload({
+        parameterId: 0,
+        measuredValue: 10,
+        occurredAt: "2026-03-31T12:00",
+        description: "Teste",
+      }),
+    ).toBe("Parâmetro é obrigatório.");
+
+    expect(
+      validateAlertPayload({
+        parameterId: 1,
+        measuredValue: Number.NaN,
+        occurredAt: "2026-03-31T12:00",
+        description: "Teste",
+      }),
+    ).toBe("Valor medido inválido.");
+
+    expect(
+      validateAlertPayload({
+        parameterId: 1,
+        measuredValue: 10,
+        occurredAt: "",
+        description: "Teste",
+      }),
+    ).toBe("Data/hora da ocorrência é obrigatória.");
+
+    expect(
+      validateAlertPayload({
+        parameterId: 1,
+        measuredValue: 10,
+        occurredAt: "2026-03-31T12:00",
+        description: "",
+      }),
+    ).toBe("Descrição é obrigatória.");
+
+    expect(
+      validateAlertPayload({
+        parameterId: 1,
+        measuredValue: 10,
+        occurredAt: "2026-03-31T12:00",
+        description: "Tudo certo",
+      }),
+    ).toBeNull();
+  });
+
+  it("deve mapear resposta da API para o modelo da UI", () => {
+    const mapped = mapAlertApiToModel({
+      id: 5,
+      parameterId: 3,
+      measurementId: 90,
+      measuredValue: 17.25,
+      occurredAt: "2026-03-31T12:00:00.000Z",
+      description: "Fora da faixa",
+      status: "active",
+    });
+
+    expect(mapped).toEqual({
+      id: "5",
+      parameterId: 3,
+      measurementId: 90,
+      measuredValue: 17.25,
+      occurredAt: "2026-03-31T12:00:00.000Z",
+      description: "Fora da faixa",
+      status: "active",
+    });
+  });
+});
+
+// ==========================================
+// 2. INTEGRAÇÃO COM A API
+// ==========================================
 describe("alert-service (api)", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -159,13 +245,11 @@ describe("alert-service (api)", () => {
 
   it("deve lançar erro quando listAlerts recebe resposta não-ok", async () => {
     mockFetchJsonOnce({}, { ok: false, status: 500 });
-
     await expect(listAlerts()).rejects.toThrow("Erro ao listar alertas");
   });
 
   it("deve lançar erro quando createAlert recebe resposta não-ok", async () => {
     mockFetchJsonOnce({}, { ok: false, status: 400 });
-
     await expect(
       createAlert({
         parameterId: 1,
@@ -178,7 +262,6 @@ describe("alert-service (api)", () => {
 
   it("deve lançar erro quando updateAlert recebe resposta não-ok", async () => {
     mockFetchJsonOnce({}, { ok: false, status: 404 });
-
     await expect(
       updateAlert("7", { description: "Atualizado" }),
     ).rejects.toThrow("Erro ao atualizar alerta");
@@ -186,8 +269,6 @@ describe("alert-service (api)", () => {
 
   it("deve lançar erro quando deleteAlert recebe resposta não-ok", async () => {
     mockFetchJsonOnce({}, { ok: false, status: 404 });
-
     await expect(deleteAlert("99")).rejects.toThrow("Erro ao deletar alerta");
   });
 });
-
