@@ -1,20 +1,22 @@
 import { ArrowLeft, Loader2, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { parameterService, type Parameter } from "@/services/parameter-service";
 import { stationParameterService } from "@/services/station-parameter-service";
 import { listPublicStations } from "@/services/station-service";
-import { measurementsService } from "@/services/measurements-service"; 
+import { measurementsService } from "@/services/measurements-service";
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons-dt';
-import JSZip from 'jszip';
 import 'datatables.net-buttons/js/buttons.html5.mjs';
+import { configureDataTableExportDependencies, getDefaultExportButtons } from '@/utils/reportsUtils';
 import { createPortal } from "react-dom";
 import { shouldIncludeRowByDate, type ExportDateRange } from "./weatherTableDateFilter";
 
-DataTable.Buttons.jszip(JSZip);
-
 interface DataTableInstance {
+    clear: () => DataTableInstance;
+    rows: {
+        add: (rows: unknown[][]) => DataTableInstance;
+    };
     draw: (reset?: boolean) => void;
     destroy: () => void;
     table: () => { container: () => HTMLElement | Element };
@@ -34,8 +36,10 @@ interface MeasurementData {
 
 const formatDateTime = (isoString: string) => {
     const date = new Date(isoString);
-    
-    return date.toISOString().replace('T', ' ').substring(0, 16); 
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(
+        date.getHours(),
+    )}:${pad(date.getMinutes())}`;
 };
 
 export function WeatherTable() {
@@ -53,17 +57,24 @@ export function WeatherTable() {
 
     const [stationName, setStationName] = useState<string>("");
     const [stationParams, setStationParams] = useState<Parameter[]>([]);
-    const [measurements, setMeasurements] = useState<MeasurementData[]>([]); 
+    const [measurements, setMeasurements] = useState<MeasurementData[]>([]);
     const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
-    
+
     const [fromDate, setFromDate] = useState("");
     const [toDate, setToDate] = useState("");
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const isInvalidExportRange = Boolean(fromDate && toDate && fromDate > toDate);
+    const tableData = useMemo(() => measurements.map((item, index) => [
+        String(index + 1),
+        stationName || (id ?? ""),
+        item.idParameter?.idTypeParam?.name || "--",
+        `${item.value != null ? Number(item.value).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "--"} ${item.idParameter?.idTypeParam?.unit || ""}`.trim(),
+        formatDateTime(item.collectedAt),
+    ]), [measurements, stationName, id]);
 
-    
+
     useEffect(() => {
         let isMounted = true;
         const stationId = id ? Number.parseInt(id, 10) : 1;
@@ -75,9 +86,9 @@ export function WeatherTable() {
             }
 
             try {
-                
+
                 const [dbData, allParams, stationLinks, publicStations] = await Promise.all([
-                    measurementsService.getMeasurements(stationId, "30d"), 
+                    measurementsService.getMeasurements(stationId, "30d"),
                     parameterService.findAll(),
                     stationParameterService.findByStation(stationId),
                     listPublicStations()
@@ -90,7 +101,7 @@ export function WeatherTable() {
                     .filter((p): p is Parameter => p !== undefined);
 
                 setStationParams(activeParams);
-                setMeasurements(dbData.data); 
+                setMeasurements(dbData.data);
 
                 const currentStation = publicStations.find(s => Number(s.id) === stationId);
                 if (currentStation) {
@@ -119,7 +130,7 @@ export function WeatherTable() {
         };
     }, [id]);
 
-    
+
     useEffect(() => {
         exportDateRangeRef.current = {
             from: fromDate || undefined,
@@ -131,10 +142,9 @@ export function WeatherTable() {
         }
     }, [fromDate, toDate, isInvalidExportRange]);
 
-    
+
     useEffect(() => {
-        
-        if (isLoading || !tableRef.current) {
+        if (isLoading || !tableRef.current || dataTableRef.current) {
             return;
         }
 
@@ -156,7 +166,7 @@ export function WeatherTable() {
             if (isInvalidExportRangeRef.current) return true;
 
             const resolvedRowData = Array.isArray(rowData) ? rowData : Array.isArray(searchData) ? searchData : [];
-            const rowDateValue = resolvedRowData[4]; 
+            const rowDateValue = resolvedRowData[4];
             return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
         };
 
@@ -169,17 +179,40 @@ export function WeatherTable() {
             return shouldIncludeRowByDate(rowDateValue, exportDateRangeRef.current);
         };
 
+        const { pdfReady } = configureDataTableExportDependencies(DataTable);
+
         const table = new DataTable(tableRef.current, {
+            data: tableData,
+            columns: [
+                { title: "ID Leitura", data: 0 },
+                { title: "Estação", data: 1 },
+                { title: "Parâmetro", data: 2 },
+                { title: "Valor", data: 3 },
+                { title: "Data/hora", data: 4 },
+            ],
+
+            createdRow: (row: HTMLTableRowElement) => {
+                row.classList.add('border-b', 'border-gray-50', 'last:border-0', 'transition-all');
+                const cells = Array.from(row.querySelectorAll('td')) as HTMLTableCellElement[];
+
+                if (cells[0]) {
+                    cells[0].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500', 'font-medium', 'whitespace-nowrap');
+                }
+                if (cells[1]) {
+                    cells[1].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
+                }
+                for (let i = 2; i < cells.length; i++) {
+                    if (i === 3) cells[i].classList.add('px-6', 'py-4', 'text-sm', 'font-medium', 'text-gray-900');
+                    else cells[i].classList.add('px-6', 'py-4', 'text-sm', 'text-gray-500');
+                }
+            },
+
             pageLength: 10,
-            destroy: true, 
-            scrollX: true, 
-            autoWidth: false, 
+            destroy: true,
+            autoWidth: false,
             layout: {
                 topStart: {
-                    buttons: [
-                        { extend: 'csvHtml5', text: 'Exportar para CSV', exportOptions: { rows: exportRowsByRange } },
-                        { extend: 'excelHtml5', text: 'Exportar para XLS', exportOptions: { rows: exportRowsByRange } }
-                    ]
+                    buttons: getDefaultExportButtons(exportRowsByRange, { includePdf: pdfReady })
                 },
                 topEnd: { search: { placeholder: 'Procurar...' } },
                 bottomStart: null,
@@ -194,11 +227,22 @@ export function WeatherTable() {
                 { targets: 2, searchable: true }
             ]
         });
-        
+
         dataTableRef.current = table;
 
-        
         const wrapper = table.table().container() as HTMLElement;
+        try {
+            const generatedThead = wrapper.querySelector('thead');
+            if (generatedThead) {
+                const ths = Array.from(generatedThead.querySelectorAll('th')) as HTMLTableCellElement[];
+                ths.forEach((th) => {
+                    th.classList.add('px-6', 'py-4', 'text-xs', 'font-bold', 'text-gray-400', 'uppercase');
+                });
+
+            }
+        } catch {
+            void 0;
+        }
         const layoutRows = wrapper.querySelectorAll<HTMLElement>(".dt-layout-row");
         const topControlsRow = layoutRows[0] ?? null;
         const bottomPagingRow = layoutRows[layoutRows.length - 1] ?? null;
@@ -213,8 +257,12 @@ export function WeatherTable() {
 
             if (topEnd) {
                 const searchElement = topEnd.querySelector<HTMLElement>(".dt-search");
-                if (searchElement) topEnd.insertBefore(exportRangeSlot, searchElement);
-                else topEnd.prepend(exportRangeSlot);
+                if (searchElement) {
+                    topEnd.appendChild(exportRangeSlot);
+                } else {
+                    topEnd.prepend(exportRangeSlot);
+                }
+
             } else {
                 topControlsRow.appendChild(exportRangeSlot);
             }
@@ -238,7 +286,15 @@ export function WeatherTable() {
             dataTableRef.current = null;
             table.destroy();
         };
-    }, [isLoading, measurements]); 
+    }, [isLoading, tableData]);
+
+    useEffect(() => {
+        if (!dataTableRef.current) {
+            return;
+        }
+
+        dataTableRef.current.clear().rows.add(tableData).draw(false);
+    }, [tableData]);
 
     return (
         <div className="min-h-full flex flex-col bg-bg-dashboard">
@@ -302,19 +358,20 @@ export function WeatherTable() {
                                                 onChange={(event) => setToDate(event.target.value)}
                                             />
                                         </label>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setFromDate("");
-                                                setToDate("");
-                                            }}
-                                            title="Limpar filtros"
-                                            aria-label="Limpar filtros"
-                                            className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-                                            disabled={!fromDate && !toDate}
-                                        >
-                                            <X size={18} />
-                                        </button>
+                                        {(fromDate || toDate) && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFromDate("");
+                                                    setToDate("");
+                                                }}
+                                                title="Limpar filtros"
+                                                aria-label="Limpar filtros"
+                                                className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                                            >
+                                                <X size={18} />
+                                            </button>
+                                        )}
                                     </div>,
                                     portalTarget,
                                 )
@@ -328,37 +385,11 @@ export function WeatherTable() {
                         ) : null}
 
                         {!isLoading && (
-                           <div className="weather-table-card bg-white rounded-xl shadow-sm border border-gray-100 w-full overflow-hidden">
-                               <table ref={tableRef} id="dataTable" className="w-full text-left border-collapse min-w-[720px]">
-                                   <thead>
-                                       <tr className="border-b border-gray-50 last:border-0 transition-all">
-                                           <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">ID Leitura</td>
-                                           <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Estação</td>
-                                           <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Parâmetro</td>
-                                           <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Valor</td>
-                                           <td className="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Data/hora</td>
-                                       </tr>
-                                   </thead>
-                                   <tbody>
-                                       {measurements.map((item) => (
-                                           <tr key={item.id} className="border-b border-gray-50 last:border-0 transition-all">
-                                               <td className="px-6 py-4 text-sm text-gray-700">{item.id}</td>
-                                               <td className="px-6 py-4 text-sm text-gray-700">{stationName || id}</td>
-                                               <td className="px-6 py-4 text-sm text-gray-700">
-                                                   {item.idParameter?.idTypeParam?.name || "Desconhecido"}
-                                               </td>
-                                               <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                                                   {item.value != null ? Number(item.value).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : "--"} {item.idParameter?.idTypeParam?.unit || ""}
-                                               </td>
-                                               <td className="px-6 py-4 text-sm text-gray-700">
-                                                   {formatDateTime(item.collectedAt)}
-                                               </td>
-                                           </tr>
-                                       ))}
-                                   </tbody>
-                               </table>
-                           </div>
+                            <div className="weather-table-card bg-white rounded-xl shadow-sm border border-gray-100 w-full overflow-x-auto">
+                                <table ref={tableRef} id="dataTable" className="w-full text-left border-collapse min-w-full md:min-w-[720px]" />
+                            </div>
                         )}
+
                         <div ref={paginationHostRef} className="weather-table-pagination mt-4" />
                     </>
                 )}

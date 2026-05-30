@@ -1,6 +1,7 @@
 import Chart from "react-apexcharts";
 import type { ApexAxisChartSeries, ApexOptions } from "apexcharts";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import type { Parameter } from "../services/parameter-service";
 
 export type PeriodoTempo = "24h" | "7d" | "30d" | "custom";
@@ -32,6 +33,16 @@ export function DashboardChart({
   dadosHistoricos,
   customRange,
 }: DashboardChartProps) {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   const formatDateTimeLabel = (date: Date): string =>
     date.toLocaleString("pt-BR", {
       day: "2-digit",
@@ -192,7 +203,9 @@ export function DashboardChart({
     if (jsonKey.includes('temp')) lineColor = "#4f46e5"; 
     else if (jsonKey.includes('humid')) lineColor = "#0ea5e9"; 
     else if (jsonKey.includes('precip') || jsonKey.includes('rain')) lineColor = "#64748b"; 
-    else if (jsonKey.includes('wind')) lineColor = "#10b981"; 
+    else if (jsonKey.includes('wind')) lineColor = "#10b981";
+
+    const fontSize = isMobile ? "10px" : "12px";
 
     const options: ApexOptions = {
       chart: {
@@ -221,11 +234,11 @@ export function DashboardChart({
               : periodo === "30d"
                 ? 10
                 : getCustomTickAmount(currentData.categories.length),
-        labels: { hideOverlappingLabels: true, style: { colors: "#9ca3af", fontSize: "12px", fontWeight: 500 } },
+        labels: { hideOverlappingLabels: true, style: { colors: "#9ca3af", fontSize, fontWeight: 500 } },
       },
       yaxis: {
         labels: {
-          style: { colors: "#9ca3af", fontSize: "12px", fontWeight: 500 },
+          style: { colors: "#9ca3af", fontSize, fontWeight: 500 },
           formatter: (value) => value !== undefined ? `${value.toFixed(1)} ${yAxisFormat}` : "",
         },
       },
@@ -250,9 +263,9 @@ export function DashboardChart({
 
   if (!dadosHistoricos || !parametro) {
     return (
-      <div className="w-full h-full min-h-[300px] flex justify-center items-center text-gray-400 flex-col gap-2">
-        <Loader2 className="w-8 h-8 animate-spin" />
-        <span className="text-sm">Carregando gráfico...</span>
+      <div className="w-full h-full min-h-64 sm:min-h-80 flex justify-center items-center text-gray-400 flex-col gap-2">
+        <Loader2 className="w-6 sm:w-8 h-6 sm:h-8 animate-spin" />
+        <span className="text-xs sm:text-sm">Carregando gráfico...</span>
       </div>
     );
   }
@@ -267,18 +280,18 @@ export function DashboardChart({
 
   if (series[0].data.length === 0 || !hasAnyNumericPoint) {
       return (
-        <div className="w-full h-full min-h-[300px] flex justify-center items-center text-gray-400">
-           <span className="text-sm">Sem dados históricos para este parâmetro.</span>
+        <div className="w-full h-full min-h-64 sm:min-h-80 flex justify-center items-center text-gray-400">
+           <span className="text-xs sm:text-sm">Sem dados históricos para este parâmetro.</span>
         </div>
       )
   }
 
   return (
-    <div className="w-full h-full min-h-[300px]">
+    <div className="w-full h-full min-h-[300px] sm:min-h-80">
       {periodo === "custom" && currentData.customRangeNotice ? (
-        <p className="mb-2 text-xs text-amber-600">{currentData.customRangeNotice}</p>
+        <p className="mb-2 text-xs sm:text-sm text-amber-600">{currentData.customRangeNotice}</p>
       ) : null}
-      <Chart options={options} series={series} type="area" height="100%" />
+      <Chart options={options} series={series} type="area" height={isMobile ? 300 : "100%"} />
     </div>
   );
 }

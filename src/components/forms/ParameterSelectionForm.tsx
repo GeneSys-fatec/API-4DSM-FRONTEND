@@ -76,7 +76,7 @@ export function ParameterSelectionForm({
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-left-4 duration-300 flex flex-col h-full">
+    <div className="animate-in fade-in slide-in-from-left-4 duration-300 flex flex-col">
       <div className="relative mb-4 shrink-0">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <input
@@ -88,7 +88,7 @@ export function ParameterSelectionForm({
         />
       </div>
 
-      <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar mb-4 pr-1 max-h-[350px]">
+      <div className="flex flex-col gap-3 mb-4 pr-1">
         {isLoading ? (
           <div className="p-8 text-center text-sm text-gray-500">Carregando parâmetros...</div>
         ) : parametrosFiltrados.length === 0 ? (

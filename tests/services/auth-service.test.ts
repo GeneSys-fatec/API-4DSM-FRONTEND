@@ -37,6 +37,20 @@ describe('Auth Service (Frontend)', () => {
     expect(result).toBe(mockToken);
   });
 
+  it('deve realizar login com sucesso e retornar texto puro se não for JSON', async () => {
+    const mockTokenText = "token-texto-puro";
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      headers: { get: vi.fn().mockReturnValue('text/plain') },
+      text: async () => mockTokenText,
+    });
+
+    const payload = { email: 'admin@tecsus.com', password: 'senha' };
+    const result = await authService.login(payload);
+
+    expect(result).toBe(mockTokenText);
+  });
+
   it('deve lançar erro se o login falhar retornando JSON (ex: 401 Credenciais Inválidas)', async () => {
     getFetchMock().mockResolvedValueOnce({
       ok: false,
@@ -61,5 +75,31 @@ describe('Auth Service (Frontend)', () => {
     await expect(
       authService.login({ email: 'admin@tecsus.com', password: '123' })
     ).rejects.toThrow('Erro ao realizar login');
+  });
+
+  it('deve lançar erro se o login falhar e o content-type for nulo', async () => {
+    getFetchMock().mockResolvedValueOnce({
+      ok: false,
+      headers: { get: vi.fn().mockReturnValue(null) },
+      text: async () => 'Erro Interno',
+    });
+
+    await expect(
+      authService.login({ email: 'admin@tecsus.com', password: '123' })
+    ).rejects.toThrow('Erro ao realizar login');
+  });
+
+  it('deve realizar login com sucesso e retornar texto puro se content-type for nulo', async () => {
+    const mockTokenText = "token-texto-nulo";
+    getFetchMock().mockResolvedValueOnce({
+      ok: true,
+      headers: { get: vi.fn().mockReturnValue(null) },
+      text: async () => mockTokenText,
+    });
+
+    const payload = { email: 'admin@tecsus.com', password: 'senha' };
+    const result = await authService.login(payload);
+
+    expect(result).toBe(mockTokenText);
   });
 });
