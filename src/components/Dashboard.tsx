@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   Activity,
   Loader2,
-  X,
+  X
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { WeatherCard } from "./WeatherCard";
@@ -24,6 +24,21 @@ import { measurementsService } from "../services/measurements-service";
 import { useAlertNotifications } from "../contexts/alert-notifications-context";
 import { listAlerts } from "../services/alert-service";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
+import { parameterTooltipByKey, type ParameterTooltipContent } from "../utils/parameter-guide";
+
+interface ActiveParameter extends Parameter {
+  linkId: number;
+}
+
+function getTooltipContent(param: Parameter): ParameterTooltipContent {
+  return (
+    parameterTooltipByKey[param.json_key] ?? {
+      unit: param.unit,
+      description: param.description ?? "Este parâmetro ajuda a monitorar as condições ambientais da estação.",
+      importance: "É importante para acompanhar mudanças climáticas, apoiar alertas e orientar decisões operacionais.",
+    }
+  );
+}
 
 const getIconForParameter = (jsonKey: string) => {
   if (jsonKey.includes("temp")) return <Thermometer className="w-5 h-5" />;
@@ -48,8 +63,8 @@ export function Dashboard() {
   const dashboardFiltersStorageKey = `@ClimaSense:filters:dashboard:${stationId}`;
 
   const [stationName, setStationName] = useState<string>("");
-  const [stationParams, setStationParams] = useState<Parameter[]>([]);
-  const [parametroAtivo, setParametroAtivo] = useState<Parameter | null>(null);
+  const [stationParams, setStationParams] = useState<ActiveParameter[]>([]);
+  const [parametroAtivo, setParametroAtivo] = useState<ActiveParameter | null>(null);
 
   const [periodoAtivo, setPeriodoAtivo] = useState<PeriodoTempo>("24h");
   const [customFrom, setCustomFrom] = useState("");
@@ -130,16 +145,20 @@ export function Dashboard() {
         }
 
         const activeParams = stationLinks
-          .map((link) => allParams.find((p) => p.id === link.idTypeParam))
-          .filter((p): p is Parameter => p !== undefined);
+          .map((link) => {
+            const p = allParams.find((param) => param.id === link.idTypeParam);
+            if (!p) return undefined;
+            return { ...p, linkId: link.id };
+          })
+          .filter((p): p is ActiveParameter => p !== undefined);
 
         setStationParams(activeParams);
 
         const currentValues: Record<string, number> = {};
         measurementsResult.data.forEach((m) => {
-          const key = m.idParameter.idTypeParam.json_key;
-          if (currentValues[key] === undefined) {
-            currentValues[key] = m.value;
+          const paramId = String(m.idParameter.id);
+          if (currentValues[paramId] === undefined) {
+            currentValues[paramId] = m.value;
           }
         });
         setLatestValues(currentValues);
@@ -147,8 +166,7 @@ export function Dashboard() {
         if (activeParams.length > 0) {
           setParametroAtivo((current) => {
             if (!current) return activeParams[0];
-            const found = activeParams.find((item) => item.id === current.id);
-            if (found && found.id === current.id) return current;
+            const found = activeParams.find((item) => item.linkId === current.linkId);
             return found ?? activeParams[0];
           });
         }
@@ -184,8 +202,9 @@ export function Dashboard() {
         urlSuffix += `&startDate=${customFrom}T00:00:00Z&endDate=${customTo}T23:59:59Z`;
       }
 
+      // Agora passamos a LinkID correta, e não a ID do Tipo!
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/measurements?stationId=${stationId}&parameterId=${parametroAtivo.id}${periodParam ? `&period=${periodParam}` : ""}${urlSuffix}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:3333"}/measurements?stationId=${stationId}&parameterId=${parametroAtivo.linkId}${periodParam ? `&period=${periodParam}` : ""}${urlSuffix}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("@ClimaSense:token")}`,
@@ -221,22 +240,28 @@ export function Dashboard() {
   useEffect(() => {
     if (stationParams.length === 0) return;
 
-    const stationParamIds = stationParams.map((p) => p.id);
+    const stationParamIds = stationParams.map((p) => p.linkId);
 
     const fetchAndNotifyAlerts = async () => {
       try {
-        const allAlerts = await listAlerts();
+        const result = await listAlerts();
+        const allAlerts = result.data;
 
-        const activeStationAlerts = allAlerts.filter(
-          (alert) =>
-            alert.status === "active" &&
-            stationParamIds.includes(alert.parameterId),
-        );
+        const activeStationAlerts = allAlerts
+          .filter(alert => alert.status === "active" && stationParamIds.includes(alert.parameterId))
+          .map(alert => {
+            const param = stationParams.find(p => p.linkId === alert.parameterId);
+            return {
+              ...alert,
+              parameterName: param?.name ?? alert.parameterName,
+            };
+          });
 
         if (activeStationAlerts.length > 0) {
           const newAlerts = registerGeneratedAlerts(
             stationId,
             activeStationAlerts as Parameters<typeof registerGeneratedAlerts>[1],
+            stationName,
           );
 
           if (newAlerts.length === 1) {
@@ -261,7 +286,7 @@ export function Dashboard() {
     const intervalId = window.setInterval(fetchAndNotifyAlerts, 30_000);
 
     return () => window.clearInterval(intervalId);
-  }, [stationId, stationParams, registerGeneratedAlerts]);
+  }, [stationId, stationParams, stationName, registerGeneratedAlerts]);
 
   const getPeriodButtonClass = (periodo: PeriodoTempo) => {
     const baseClass = "px-4 py-1.5 rounded-md font-medium transition-colors ";
@@ -278,19 +303,19 @@ export function Dashboard() {
 
   return (
     <div className="min-h-full flex flex-col bg-bg-dashboard">
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div className="flex items-center gap-4">
+      <main className="flex-1 p-3 sm:p-4 md:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
             {isAdminRoute && (
               <button
                 onClick={() => navigate("/admin/selecionar-estacao")}
                 className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-200 rounded-lg transition-all focus:outline-none shrink-0"
                 aria-label="Voltar"
               >
-                <ArrowLeft size={24} />
+                <ArrowLeft size={20} className="sm:w-6 sm:h-6" />
               </button>
             )}
-            <h2 className="text-xl md:text-2xl font-bold text-gray-800 tracking-tight">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 tracking-tight truncate">
               {stationName
                 ? stationName
                 : id
@@ -316,51 +341,57 @@ export function Dashboard() {
           </div>
         )}
 
-        {!isLoading && stationParams.length === 0 ? (
-          <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
-            Esta estação não possui nenhum parâmetro (sensor) atrelado a ela.
-            Edite a estação para adicionar medições.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2">
-            {stationParams.map((param) => {
-              const rawValue = latestValues[param.json_key];
-              const displayValue =
-                rawValue !== undefined && rawValue !== null
-                  ? `${Number(rawValue).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${param.unit}`
-                  : "--";
+        <div className="relative overflow-visible">
+          {!isLoading && stationParams.length === 0 ? (
+            <div className="bg-white p-8 text-center text-gray-500 rounded-xl border border-dashed border-gray-300 mb-8">
+              Esta estação não possui nenhum parâmetro (sensor) atrelado a ela.
+              Edite a estação para adicionar medições.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 mb-8 py-2 overflow-visible">
+              {stationParams.map((param) => {
+                const rawValue = latestValues[String(param.linkId)];
+                const displayValue =
+                  rawValue !== undefined && rawValue !== null
+                    ? `${Number(rawValue).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} ${param.unit}`
+                    : "--";
 
-              return (
-                <WeatherCard
-                  key={param.id}
-                  title={param.name}
-                  icon={getIconForParameter(param.json_key)}
-                  value={displayValue}
-                  subtitle="Atual"
-                  isActive={parametroAtivo?.id === param.id}
-                  onClick={() => setParametroAtivo(param)}
-                />
-              );
-            })}
-          </div>
-        )}
+                return (
+                  <WeatherCard
+                    key={param.linkId}
+                    title={param.name}
+                    icon={getIconForParameter(param.json_key)}
+                    value={displayValue}
+                    subtitle="Atual"
+                    isActive={parametroAtivo?.linkId === param.linkId}
+                    onClick={() => setParametroAtivo(param)}
+                    tooltipInfo={getTooltipContent(param)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-        {/* GRÁFICO E FILTROS */}
         {parametroAtivo && (
-          <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col h-100 md:h-112.5">
-            <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
-              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0">
+          <div className="bg-white p-3 pb-10 sm:p-4 md:p-6 rounded-lg sm:rounded-xl shadow-sm border border-gray-100 flex flex-col h-auto md:h-[500px] lg:h-[600px]">
+
+
+
+            <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_auto] items-start mb-6 shrink-0 gap-4">
+              <h3 className="text-lg md:text-xl font-bold text-gray-800 tracking-tight leading-tight min-w-0 col-span-1 lg:col-span-auto">
                 Gráfico de {parametroAtivo.name}
               </h3>
 
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:justify-end sm:ml-auto">
+              <div className="flex flex-col xl:flex-row flex-wrap items-start xl:items-center gap-3 w-full lg:w-auto lg:justify-end lg:ml-auto">
                 <div className="flex flex-wrap gap-1 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
+
                   {(["24h", "7d", "30d", "custom"] as PeriodoTempo[]).map(
                     (periodo) => (
                       <button
                         key={periodo}
                         onClick={() => setPeriodoAtivo(periodo)}
-                        className={`flex-1 sm:flex-none ${getPeriodButtonClass(periodo)}`}
+                        className={`sm:flex-none ${getPeriodButtonClass(periodo)}`}
                       >
                         {periodo === "24h"
                           ? "Últimas 24h"
@@ -375,35 +406,52 @@ export function Dashboard() {
                 </div>
 
                 {periodoAtivo === "custom" ? (
-                  <div className="grid grid-cols-1 sm:flex sm:items-center gap-2 text-sm bg-gray-50 p-1 rounded-lg border border-gray-100 w-full sm:w-auto">
-                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
-                      De:
-                      <input
-                        type="date"
-                        value={customFrom}
-                        max={customTo || undefined}
-                        onChange={(event) => setCustomFrom(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
-                      />
-                    </label>
-                    <label className="flex items-center justify-between sm:justify-start gap-1 text-gray-600 px-2 py-1">
-                      Até:
-                      <input
-                        type="date"
-                        value={customTo}
-                        min={customFrom || undefined}
-                        onChange={(event) => setCustomTo(event.target.value)}
-                        className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green w-[11rem] sm:w-auto"
-                      />
-                    </label>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm bg-gray-50 p-2 sm:p-1 rounded-lg border border-gray-100 w-full lg:w-auto">
 
                     <button
-                      className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 justify-self-end"
+                      className="sm:hidden p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors shrink-0 self-end -mt-1 -mr-1"
                       onClick={clearPeriodFilters}
                       title="Limpar filtros"
                     >
                       <X size={18} />
                     </button>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-none sm:flex sm:items-center gap-2 w-full sm:w-auto">
+
+                      <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                        De:
+                        <input
+                          type="date"
+                          value={customFrom}
+                          max={customTo || undefined}
+                          onChange={(event) => setCustomFrom(event.target.value)}
+                          className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        />
+                      </label>
+                      <label className="flex items-center gap-1 text-gray-600 px-2 py-1">
+                        Até:
+                        <input
+                          type="date"
+                          value={customTo}
+                          min={customFrom || undefined}
+                          onChange={(event) => setCustomTo(event.target.value)}
+                          className="px-2 py-1 bg-white border border-gray-200 rounded-md text-sm text-gray-700 focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
+                        />
+                      </label>
+                    </div>
+
+
+                    {(customFrom || customTo) && (
+                      <button
+                        type="button"
+                        onClick={clearPeriodFilters}
+                        title="Limpar filtros"
+                        aria-label="Limpar filtros"
+                        className="p-2 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                      >
+                        <X size={18} />
+                      </button>
+                    )}
                   </div>
                 ) : null}
               </div>
@@ -416,7 +464,7 @@ export function Dashboard() {
               </p>
             ) : null}
 
-            <div className="flex-1 w-full min-h-0 pb-4">
+            <div className="flex-1 w-full min-h-0 pb-2 sm:pb-3 md:pb-4">
               <DashboardChart
                 parametro={parametroAtivo}
                 periodo={periodoAtivo}

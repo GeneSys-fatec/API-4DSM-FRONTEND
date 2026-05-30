@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { Edit2, Search, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { ConfirmDelete } from "../components/ConfirmDelete";
@@ -39,7 +40,9 @@ const DEFAULT_FILTERS: AlertsFiltersState = {
 };
 
 function formatDateTime(isoDate: string): string {
+  if (!isoDate) return "Data indisponível";
   const date = new Date(isoDate);
+  if (Number.isNaN(date.getTime())) return "Data inválida";
   return date.toLocaleString("pt-BR", {
     day: "2-digit",
     month: "2-digit",
@@ -78,8 +81,8 @@ export function Alerts() {
     setErrorMessage(null);
 
     try {
-      const data = await listAlerts(parsedFilters);
-      setAlerts(data);
+      const result = await listAlerts(parsedFilters);
+      setAlerts(result.data);
     } catch {
       setErrorMessage("Não foi possível carregar os alertas.");
     } finally {
@@ -131,11 +134,10 @@ export function Alerts() {
       header: "Status",
       render: (item) => (
         <span
-          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${
-            item.status === "active"
+          className={`px-3 py-1 rounded-full text-xs font-medium tracking-wide ${item.status === "active"
               ? "bg-red-100 text-red-700"
               : "bg-tecsus-green/10 text-tecsus-green"
-          }`}
+            }`}
         >
           {item.status === "active" ? "ATIVO" : "RESOLVIDO"}
         </span>
@@ -346,8 +348,8 @@ export function Alerts() {
         )}
       </div>
 
-      {isFormOpen && (
-        <div className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4" onClick={closeForm}>
+      {isFormOpen && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={closeForm}>
           <div onClick={(event) => event.stopPropagation()}>
             <AlertForm
               mode={editingAlert ? "edit" : "create"}
@@ -357,15 +359,17 @@ export function Alerts() {
               onSubmit={handleSubmit}
             />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {alertToDelete && (
-        <div className="fixed inset-0 z-80 bg-black/40 flex items-center justify-center p-4" onClick={() => setAlertToDelete(null)}>
+      {alertToDelete && createPortal(
+        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={() => setAlertToDelete(null)}>
           <div onClick={(event) => event.stopPropagation()}>
             <ConfirmDelete onClose={() => setAlertToDelete(null)} onConfirm={handleDelete} />
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

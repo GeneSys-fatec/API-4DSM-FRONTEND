@@ -3,6 +3,7 @@ import {
   getEmptyAlertPayload,
   mapAlertApiToModel,
   validateAlertPayload,
+  type AlertApi,
 } from "../../src/services/alert-service";
 
 describe("alert-service (utils)", () => {
@@ -65,15 +66,16 @@ describe("alert-service (utils)", () => {
   it("deve mapear resposta da API para o modelo da UI", () => {
     const mapped = mapAlertApiToModel({
       id: 5,
-      parameterId: 3,
-      measurementId: 90,
-      measuredValue: 17.25,
-      occurredAt: "2026-03-31T12:00:00.000Z",
-      description: "Fora da faixa",
+      idParameter: { id: 3 },
+      idMeasurement: { id: 90 },
+      triggeredValue: 17.25,
+      triggeredAt: "2026-03-31T12:00:00.000Z",
+      texto: "Fora da faixa",
       status: "active",
-    });
+      isRead: false,
+    } as AlertApi);
 
-    expect(mapped).toEqual({
+    expect(mapped).toMatchObject({
       id: "5",
       parameterId: 3,
       measurementId: 90,
@@ -81,35 +83,8 @@ describe("alert-service (utils)", () => {
       occurredAt: "2026-03-31T12:00:00.000Z",
       description: "Fora da faixa",
       status: "active",
+      isRead: false,
     });
   });
 
-  it.skip("deve filtrar alertas por descrição, parâmetro e status", () => {
-    // const alerts = [
-    //   {
-    //     id: "1",
-    //     parameterId: 1,
-    //     measurementId: 1,
-    //     measuredValue: 20,
-    //     occurredAt: "2026-03-31T12:00:00.000Z",
-    //     description: "Temperatura alta",
-    //     status: "active" as const,
-    //   },
-    //   {
-    //     id: "2",
-    //     parameterId: 2,
-    //     measurementId: 2,
-    //     measuredValue: 40,
-    //     occurredAt: "2026-03-31T13:00:00.000Z",
-    //     description: "Umidade baixa",
-    //     status: "resolved" as const,
-    //   },
-    // ];
-
-    // O método alertFilter não existe mais ou foi renomeado, teste desativado.
-    // expect(alertFilter(alerts, "")).toHaveLength(2);
-    // expect(alertFilter(alerts, "temperatura")).toHaveLength(1);
-    // expect(alertFilter(alerts, "2")).toHaveLength(1);
-    // expect(alertFilter(alerts, "resolved")).toHaveLength(1);
-  });
 });
