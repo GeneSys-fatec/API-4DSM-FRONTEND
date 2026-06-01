@@ -21,7 +21,6 @@ export default defineConfig({
     restoreMocks: true,
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'lcov'],
       
       include: [
         'src/services/**/*.ts', 
