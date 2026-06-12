@@ -6,8 +6,8 @@ import { TableBase } from "./TableBody";
 import { Bolt } from "lucide-react";
 import { LimitsForm } from "./forms/LimitsForm";
 
+// Removemos o onClose da interface pois o modal pai já gerencia o fechamento
 interface ParameterByStationProps {
-    onClose: () => void;
     stationId: number;
     onSuccess?: () => void;
 }
@@ -43,7 +43,7 @@ const columns = [
     },
 ];
 
-export function ParameterByStation({ onClose, stationId, onSuccess }: ParameterByStationProps) {
+export function ParameterByStation({ stationId, onSuccess }: ParameterByStationProps) {
     const [stationParameters, setStationParameters] = useState<Parameter[]>([]);
     const [isLoadingParameters, setIsLoadingParameters] = useState(true);
     const [expandedParameter, setExpandedParameter] = useState<Parameter | null>(null);
@@ -88,18 +88,8 @@ export function ParameterByStation({ onClose, stationId, onSuccess }: ParameterB
     }, [stationId]);
 
     return (
-        <div className="w-full mx-auto flex flex-col content-center bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden max-h-[90vh]">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-                <h2 className="text-lg md:text-xl font-bold text-gray-900">Parâmetros da estação</h2>
-                <button
-                    type="button"
-                    className="text-gray-500 hover:text-gray-700 text-xl cursor-pointer"
-                    onClick={onClose}
-                >
-                    &times;
-                </button>
-            </div>
-
+        // Atualizado para usar a classe utilitária nativa min-h-75 do Tailwind
+        <div className="w-full flex flex-col h-full min-h-75">
             <div className="min-h-0 flex-1 flex flex-col">
                 {isLoadingParameters ? (
                     <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
@@ -107,7 +97,7 @@ export function ParameterByStation({ onClose, stationId, onSuccess }: ParameterB
                     </div>
                 ) : stationParameters.length > 0 ? (
                     <>
-                        <div className="min-h-0 overflow-y-auto">
+                        <div className="min-h-0 overflow-y-auto rounded-lg border border-gray-100">
                             <TableBase
                                 data={stationParameters}
                                 columns={columns}
@@ -132,7 +122,7 @@ export function ParameterByStation({ onClose, stationId, onSuccess }: ParameterB
                             />
                         </div>
                         {expandedParameter && (
-                            <div className="shrink-0 border-t border-gray-100">
+                            <div className="mt-4 shrink-0">
                                 <LimitsForm
                                     onClose={() => setExpandedParameter(null)}
                                     stationId={stationId}
@@ -146,7 +136,7 @@ export function ParameterByStation({ onClose, stationId, onSuccess }: ParameterB
                         )}
                     </>
                 ) : (
-                    <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
+                    <div className="p-8 text-sm text-gray-500 flex justify-center items-center border border-dashed border-gray-200 rounded-lg">
                         Nenhum parâmetro encontrado. Cadastre seu primeiro parâmetro!
                     </div>
                 )}
