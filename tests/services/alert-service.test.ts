@@ -94,7 +94,7 @@ describe("alert-service (utils)", () => {
 
   it("deve mapear resposta da API para o modelo da UI", () => {
     const mapped = mapAlertApiToModel({
-      id: 5,
+      id: "5",
       idParameter: { id: 3 },
       idMeasurement: { id: 90 },
       triggeredValue: 17.25,
@@ -127,7 +127,7 @@ describe("alert-service (api)", () => {
   it("deve listar alertas registrados", async () => {
     const apiAlerts: AlertApi[] = [
       {
-        id: 1,
+        id: "1",
         idParameter: { id: 2 },
         idMeasurement: { id: 10 },
         triggeredValue: 45.5,

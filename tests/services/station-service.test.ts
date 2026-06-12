@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, waitFor, act } from "@testing-library/react";
 import * as api from "../../src/services/api";
 import { toast } from "react-toastify";
-import { FormEvent } from "react";
+import type { FormEvent } from "react";
 import {
   stationFilter,
   mapStationApiToEstacaoModel,
