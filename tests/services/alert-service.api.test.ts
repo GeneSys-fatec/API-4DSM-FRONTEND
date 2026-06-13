@@ -41,7 +41,7 @@ describe("alert-service (api)", () => {
   it("deve listar alertas registrados", async () => {
     const apiAlerts: AlertApi[] = [
       {
-        id: 1,
+        id: "1",
         idParameter: { id: 2 },
         idMeasurement: { id: 10 },
         triggeredValue: 45.5,

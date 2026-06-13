@@ -1,42 +1,67 @@
 import { TriangleAlert } from "lucide-react";
+import { useState } from "react";
+import { BaseModal } from "./ui/BaseModal";
 
 interface ConfirmDeleteProps {
-    onClose: () => void;
-    onConfirm: () => void | Promise<void>;
+  onClose: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export function ConfirmDelete({ onClose, onConfirm }: ConfirmDeleteProps) {
-    return (
-        <div className="flex flex-col justify-center items-center max-w-md rounded-xl bg-white p-6 md:p-8 shadow-xl border border-gray-100">
-            <div className="mb-5 flex flex-col items-center gap-4">
-                <button
-                    type="button"
-                    className="self-end text-2xl text-gray-500 hover:text-gray-700 cursor-pointer"
-                    onClick={onClose}
-                >
-                    &times;
-                </button>
-                <TriangleAlert className="text-red-600 w-10 h-10" />
-                <p className="flex flex-col text-center font-semibold">Tem certeza que deseja excluir esse item? 
-                    <span className="text-sm text-red-600"> 
-                        Essa ação não pode ser revertida.
-                    </span>
-                </p>
-            </div>
-            <div className="flex gap-2">
-                <button type="button"
-                    className="bg-gray-400 font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md"
-                    onClick={onClose}>
-                    Cancelar
-                </button>
-                <button
-                    type="button"
-                    className="bg-red-600 text-white font-semibold text-sm p-2 gap-2 hover:opacity-80 cursor-pointer rounded-md"
-                    onClick={onConfirm}
-                    >
-                    Excluir
-                </button>
-            </div>
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsDeleting(true);
+    try {
+      await onConfirm();
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const customFooter = (
+    <div className="flex items-center justify-end gap-3 w-full">
+      <button
+        type="button"
+        onClick={onClose}
+        disabled={isDeleting}
+        className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        onClick={handleConfirm}
+        disabled={isDeleting}
+        className="px-6 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-opacity-90 transition-all shadow-sm disabled:opacity-50"
+      >
+        {isDeleting ? "Excluindo..." : "Excluir"}
+      </button>
+    </div>
+  );
+
+  return (
+    <BaseModal
+      isOpen={true}
+      onClose={onClose}
+      title="Confirmar Exclusão"
+      onCancel={onClose}
+      maxWidth="md"
+      customFooter={customFooter}
+    >
+      <div className="flex flex-col items-center justify-center py-2 gap-4 text-center">
+        <div className="p-4 bg-red-50 rounded-full">
+          <TriangleAlert className="text-red-600 w-8 h-8" />
         </div>
-    )
+        <div>
+          <p className="text-gray-900 font-medium text-base">
+            Tem certeza que deseja excluir esse item?
+          </p>
+          <p className="text-sm text-red-500 mt-1">
+            Essa ação não pode ser revertida.
+          </p>
+        </div>
+      </div>
+    </BaseModal>
+  );
 }

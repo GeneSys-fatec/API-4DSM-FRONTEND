@@ -7,7 +7,7 @@ import {
 describe("alert-notification-utils", () => {
   it("deve gerar assinatura estável por estação/parâmetro/status/descrição", () => {
     const signature = buildNotificationSignature({
-      id: 1,
+      id: "1",
       parameterId: 7,
       measurementId: 10,
       measuredValue: 40,
@@ -22,7 +22,7 @@ describe("alert-notification-utils", () => {
 
   it("deve bloquear duplicatas dentro da janela e aceitar fora da janela", () => {
     const first = {
-      id: 1,
+      id: "1",
       parameterId: 7,
       measurementId: 10,
       measuredValue: 40,

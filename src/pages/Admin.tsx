@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { Trash2, Pencil, Search } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { type Administrator, administratorService } from "../services/administrator-services";
@@ -136,8 +135,6 @@ export function Admin() {
                 </h1>
 
                 <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto">
-
-
                     <div className="relative w-full lg:w-64 shrink-0">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <Search className="h-4 w-4 text-gray-400" />
@@ -155,7 +152,6 @@ export function Admin() {
                             className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green"
                         />
                     </div>
-
 
                     <div className="flex items-center gap-2 w-full lg:w-auto">
                         <select
@@ -181,7 +177,6 @@ export function Admin() {
                     >
                         Cadastrar administrador
                     </button>
-
                 </div>
             </div>
 
@@ -235,19 +230,12 @@ export function Admin() {
                 onSuccess={handleFormSuccess}
             />
 
-            {isConfirmDeleteOpen && createPortal(
-                <div
-                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
-                    onClick={closeModal}
-                >
-                    <div onClick={(event) => event.stopPropagation()}>
-                        <ConfirmDelete
-                            onClose={closeModal}
-                            onConfirm={handleDeleteConfirm}
-                        />
-                    </div>
-                </div>,
-                document.body
+            {/* Modais de Exclusão também renderizados limpos! */}
+            {isConfirmDeleteOpen && (
+                <ConfirmDelete
+                    onClose={closeModal}
+                    onConfirm={handleDeleteConfirm}
+                />
             )}
         </div>
     );
