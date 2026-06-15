@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 
 export interface AlertApi {
-  id: number;
+  id: string;
   idParameter?: {
     id: number;
     idStation?: { id: number; name: string; };

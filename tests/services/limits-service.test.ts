@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { limitsService } from "../../src/services/limits-service";
 
+type MockFunction = (...args: unknown[]) => unknown;
+
 type FetchMock = {
   mockResolvedValueOnce(value: unknown): FetchMock;
+  mockImplementationOnce(fn: MockFunction): FetchMock;
   mock: {
     calls: Array<[RequestInfo | URL, RequestInit?]>;
   };
@@ -50,7 +53,9 @@ describe("limits-service", () => {
     });
 
     it("deve retornar array vazio se der erro na requisição", async () => {
-      getFetchMock().mockRejectedValueOnce(new Error("Network Error"));
+      // Em vez de: getFetchMock().mockRejectedValueOnce(new Error("Network Error"));
+// Use isso:
+      getFetchMock().mockImplementationOnce(() => Promise.reject(new Error("Network Error")));
       const result = await limitsService.findAll();
       expect(result).toEqual([]);
     });
@@ -76,7 +81,7 @@ describe("limits-service", () => {
     });
 
     it("deve retornar null se der erro na requisição", async () => {
-      getFetchMock().mockRejectedValueOnce(new Error("Network error"));
+      getFetchMock().mockImplementationOnce(() => Promise.reject(new Error("Network Error")));
       const result = await limitsService.findById(5);
       expect(result).toBeNull();
     });
@@ -105,7 +110,9 @@ describe("limits-service", () => {
     });
 
     it("deve retornar null se der erro na requisição", async () => {
-      getFetchMock().mockRejectedValueOnce(new Error("Network error"));
+      // Em vez de: getFetchMock().mockRejectedValueOnce(new Error("Network Error"));
+// Use isso:
+      getFetchMock().mockImplementationOnce(() => Promise.reject(new Error("Network Error")));
       const result = await limitsService.create({ idTypeParam: 1, minExpected: 0, maxExpected: 10 });
       expect(result).toBeNull();
     });
@@ -134,7 +141,9 @@ describe("limits-service", () => {
     });
 
     it("deve retornar null se der erro na requisição", async () => {
-      getFetchMock().mockRejectedValueOnce(new Error("Network error"));
+      // Em vez de: getFetchMock().mockRejectedValueOnce(new Error("Network Error"));
+// Use isso:
+      getFetchMock().mockImplementationOnce(() => Promise.reject(new Error("Network Error")));
       const result = await limitsService.update(1, { idTypeParam: 1, minExpected: 0, maxExpected: 10 });
       expect(result).toBeNull();
     });
@@ -160,7 +169,9 @@ describe("limits-service", () => {
     });
 
     it("deve retornar false se der erro na requisição", async () => {
-      getFetchMock().mockRejectedValueOnce(new Error("Network error"));
+      // Em vez de: getFetchMock().mockRejectedValueOnce(new Error("Network Error"));
+// Use isso:
+      getFetchMock().mockImplementationOnce(() => Promise.reject(new Error("Network Error")));
       const result = await limitsService.delete(1);
       expect(result).toBe(false);
     });

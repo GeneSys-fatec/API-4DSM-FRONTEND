@@ -16,7 +16,7 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.{test,spec}.{ts,tsx}'], 
     clearMocks: true,
     restoreMocks: true,
     coverage: {
@@ -28,7 +28,8 @@ export default defineConfig({
       exclude: [
         'src/**/*.spec.ts', 
         'src/**/*.test.ts', 
-        'src/**/*.d.ts'
+        'src/**/*.d.ts',
+        'tests/**/*' 
       ],
       
       thresholds: {

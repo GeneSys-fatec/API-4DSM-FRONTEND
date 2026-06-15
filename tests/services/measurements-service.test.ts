@@ -3,6 +3,7 @@ import { measurementsService } from "../../src/services/measurements-service";
 
 type FetchMock = {
   mockResolvedValueOnce(value: unknown): FetchMock;
+  mockRejectedValueOnce(value: unknown): FetchMock;
   mock: {
     calls: Array<[RequestInfo | URL, RequestInit?]>;
   };

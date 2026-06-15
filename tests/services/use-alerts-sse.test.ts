@@ -60,7 +60,7 @@ describe("useAlertsSSE Hook", () => {
       description: "Cuidado! Temperatura muito alta."
     };
 
-    eventSourceMock.onmessage({ data: JSON.stringify(payload) });
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
     expect(toast.warn).toHaveBeenCalledOnce();
     expect(toast.warn).toHaveBeenCalledWith(
@@ -80,7 +80,7 @@ describe("useAlertsSSE Hook", () => {
       }
     ];
 
-    eventSourceMock.onmessage({ data: JSON.stringify(payload) });
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
     expect(toast.warn).toHaveBeenCalledOnce();
     expect(toast.warn).toHaveBeenCalledWith(
@@ -93,8 +93,8 @@ describe("useAlertsSSE Hook", () => {
     renderHook(() => useAlertsSSE("http://localhost:8080"));
     const payload = { id: 11, titulo: "Alerta", description: "Desc" };
 
-    eventSourceMock.onmessage({ data: JSON.stringify(payload) });
-    eventSourceMock.onmessage({ data: JSON.stringify(payload) });
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
     expect(toast.warn).toHaveBeenCalledTimes(1);
   });
@@ -104,7 +104,7 @@ describe("useAlertsSSE Hook", () => {
     renderHook(() => useAlertsSSE("http://localhost:8080"));
     
     expect(eventSourceMock.onerror).toBeDefined();
-    eventSourceMock.onerror(new Event("error"));
+    eventSourceMock.onerror?.(new Event("error"));
     
     expect(consoleSpy).toHaveBeenCalled();
     consoleSpy.mockRestore();
@@ -113,7 +113,7 @@ describe("useAlertsSSE Hook", () => {
   it("deve ignorar mensagem se JSON for inválido", () => {
     renderHook(() => useAlertsSSE("http://localhost:8080"));
     
-    eventSourceMock.onmessage({ data: "invalid json" });
+    eventSourceMock.onmessage?.({ data: "invalid json" });
     
     expect(toast.warn).not.toHaveBeenCalled();
   });

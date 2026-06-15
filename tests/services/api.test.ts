@@ -43,7 +43,8 @@ describe('API Utility Service', () => {
       );
       
       const callArgs = vi.mocked(globalThis.fetch).mock.calls[0][1];
-      expect(callArgs?.headers.get('Content-Type')).toBe('application/json');
+      const headers = callArgs?.headers as Headers | undefined;
+      expect(headers?.get('Content-Type')).toBe('application/json');
       expect(result).toBe(mockResponse);
     });
 
@@ -57,7 +58,8 @@ describe('API Utility Service', () => {
       await apiFetch('/test-token');
 
       const callArgs = vi.mocked(globalThis.fetch).mock.calls[0][1];
-      expect(callArgs?.headers.get('Authorization')).toBe(`Bearer ${mockToken}`);
+      const headers = callArgs?.headers as Headers | undefined;
+      expect(headers?.get('Authorization')).toBe(`Bearer ${mockToken}`);
     });
 
     it('should not add Authorization header if token is missing', async () => {
@@ -67,7 +69,8 @@ describe('API Utility Service', () => {
       await apiFetch('/test-no-token');
 
       const callArgs = vi.mocked(globalThis.fetch).mock.calls[0][1];
-      expect(callArgs?.headers.get('Authorization')).toBeNull();
+      const headers = callArgs?.headers as Headers | undefined;
+      expect(headers?.get('Authorization')).toBeNull();
     });
 
     it('should not overwrite existing Content-Type header', async () => {
@@ -83,7 +86,8 @@ describe('API Utility Service', () => {
       });
 
       const callArgs = vi.mocked(globalThis.fetch).mock.calls[0][1];
-      expect(callArgs?.headers.get('Content-Type')).toBe('application/xml');
+      const headers = callArgs?.headers as Headers | undefined;
+      expect(headers?.get('Content-Type')).toBe('application/xml');
     });
   });
 });

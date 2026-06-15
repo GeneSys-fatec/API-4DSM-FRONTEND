@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import {
   Search,
   Settings2,
@@ -10,6 +9,7 @@ import { TableBase, type TableColumn } from "../components/TableBody";
 import { CreateStationModal } from "../components/CreateStationModal";
 import { DeleteStationModal } from "../components/DeleteStationModal";
 import { EditStationModal } from "../components/EditStationModal";
+import { BaseModal } from "../components/ui/BaseModal"; 
 import {
   deleteStation,
   type StationListFilters,
@@ -66,15 +66,14 @@ export function StationManage() {
     errorMessage,
     reload,
   } = useStationsList(stationFilters);
+  
   const createModal = useCreateStationModal(reload);
   const editModal = useEditStationModal(reload);
   const [limitsTarget, setLimitsTarget] = useState<Station | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<Station | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(
-    null,
-  );
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
 
   const openDeleteModal = (station: Station) => {
     setDeleteErrorMessage(null);
@@ -147,7 +146,6 @@ export function StationManage() {
         <span className="text-gray-600">{item.codigo || "-"}</span>
       ),
     },
-
     {
       key: "isActive",
       header: "STATUS",
@@ -165,15 +163,14 @@ export function StationManage() {
   ];
 
   return (
-    <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full flex flex-col h-full">
+    // Correção do linter: max-w-[1400px] alterado para max-w-350
+    <div className="p-4 md:p-8 max-w-350 mx-auto w-full flex flex-col h-full">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
         <h1 className="text-xl font-bold text-gray-800">
           Estações Cadastradas
         </h1>
 
         <div className="flex flex-col lg:flex-row lg:items-center gap-3 w-full lg:w-auto">
-
-
           <div className="relative w-full lg:w-64 shrink-0">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search className="h-4 w-4 text-gray-400" />
@@ -191,7 +188,6 @@ export function StationManage() {
               className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-tecsus-green focus:border-tecsus-green transition-all"
             />
           </div>
-
 
           <div className="flex items-center gap-2 w-full lg:w-auto">
             <select
@@ -216,7 +212,6 @@ export function StationManage() {
           >
             Cadastrar estação
           </button>
-
         </div>
       </div>
 
@@ -284,25 +279,28 @@ export function StationManage() {
       </div>
 
       <CreateStationModal modal={createModal} />
+      
       <EditStationModal modal={editModal} />
-      {limitsTarget && createPortal(
-        <div
-          className="fixed inset-0 z-[100] bg-black/40 flex items-start md:items-center justify-center p-4 pt-20 md:pt-4"
-          onClick={closeLimitsModal}
+      
+      {limitsTarget && (
+        <BaseModal
+          isOpen={true}
+          onClose={closeLimitsModal}
+          title={`Limites e Parâmetros - ${limitsTarget.nome}`}
+          onCancel={closeLimitsModal}
+          maxWidth="3xl"
+          customFooter={<></>}
         >
-          <div
-            className="w-full max-w-[96vw] md:max-w-5xl max-h-[55vh] md:max-h-[90vh] mx-auto"
-            onClick={(event) => event.stopPropagation()}
-          >
+          <div className="pb-2">
+            {/* Correção do TypeScript: removido o onClose que não existe mais */}
             <ParameterByStation
-              onClose={closeLimitsModal}
               stationId={Number(limitsTarget.id)}
               onSuccess={closeLimitsModal}
             />
           </div>
-        </div>,
-        document.body
+        </BaseModal>
       )}
+
       <DeleteStationModal
         isOpen={Boolean(deleteTarget)}
         stationName={deleteTarget?.nome}

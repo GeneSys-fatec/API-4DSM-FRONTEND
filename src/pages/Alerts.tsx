@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { Edit2, Search, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import { ConfirmDelete } from "../components/ConfirmDelete";
@@ -348,28 +347,21 @@ export function Alerts() {
         )}
       </div>
 
-      {isFormOpen && createPortal(
-        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={closeForm}>
-          <div onClick={(event) => event.stopPropagation()}>
-            <AlertForm
-              mode={editingAlert ? "edit" : "create"}
-              initialAlert={editingAlert ?? undefined}
-              isSubmitting={isSubmitting}
-              onCancel={closeForm}
-              onSubmit={handleSubmit}
-            />
-          </div>
-        </div>,
-        document.body
+      {isFormOpen && (
+        <AlertForm
+          mode={editingAlert ? "edit" : "create"}
+          initialAlert={editingAlert ?? undefined}
+          isSubmitting={isSubmitting}
+          onCancel={closeForm}
+          onSubmit={handleSubmit}
+        />
       )}
 
-      {alertToDelete && createPortal(
-        <div className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4" onClick={() => setAlertToDelete(null)}>
-          <div onClick={(event) => event.stopPropagation()}>
-            <ConfirmDelete onClose={() => setAlertToDelete(null)} onConfirm={handleDelete} />
-          </div>
-        </div>,
-        document.body
+      {alertToDelete && (
+        <ConfirmDelete 
+          onClose={() => setAlertToDelete(null)} 
+          onConfirm={handleDelete} 
+        />
       )}
     </div>
   );

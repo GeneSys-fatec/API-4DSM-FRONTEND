@@ -65,7 +65,7 @@ describe("alert-service (utils)", () => {
 
   it("deve mapear resposta da API para o modelo da UI", () => {
     const mapped = mapAlertApiToModel({
-      id: 5,
+      id: "5", // Alterado de 5 para "5" para corresponder ao tipo AlertApi
       idParameter: { id: 3 },
       idMeasurement: { id: 90 },
       triggeredValue: 17.25,
@@ -86,5 +86,4 @@ describe("alert-service (utils)", () => {
       isRead: false,
     });
   });
-
 });
