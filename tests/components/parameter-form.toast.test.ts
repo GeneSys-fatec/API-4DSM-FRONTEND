@@ -50,6 +50,7 @@ describe("ParameterForm — toasts de feedback", () => {
       onClose: vi.fn(),
       mode,
       onSuccess: vi.fn(),
+      inline: true,
       ...(mode === "edit" ? { parameter: existingParameter } : {}),
     };
 
