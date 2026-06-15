@@ -7,7 +7,11 @@ export default {
   },
   
   defaultIgnores: true,
-  ignores: [(commit) => commit.includes("Merge")],
+  ignores: [
+    (commit) => commit.includes("Merge"),
+    // Commit legado do branch docs (anterior à criação das regras de commit)
+    (commit) => commit.includes("docs: adiciona guia de configuração do frontend"),
+  ],
   
   rules: {
     'type-enum': [
