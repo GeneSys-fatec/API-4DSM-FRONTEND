@@ -36,7 +36,7 @@ export function useAlertsSSE(apiUrl: string) {
             const titulo = alertData.titulo || "Alerta Climático";
             const descricao = alertData.description || alertData.texto || "Valores medidos fora do limite.";
 
-            toast.warning(`${titulo}: ${descricao}`, {
+            toast.warn(`${titulo}: ${descricao}`, {
               autoClose: 10000,
               onClose: () => {
                 fetch(`${apiUrl}/alerts/${alertData.id}/read`, { method: 'PATCH' }).catch(console.error);

@@ -4,7 +4,7 @@ import { useAlertsSSE } from "../../src/services/useAlertsSSE";
 import { toast } from "react-toastify";
 
 vi.mock("react-toastify", () => ({
-  toast: { warning: vi.fn() },
+  toast: { warn: vi.fn() },
 }));
 
 describe("useAlertsSSE Hook", () => {
@@ -48,7 +48,7 @@ describe("useAlertsSSE Hook", () => {
     expect(eventSourceMock.close).toHaveBeenCalledOnce();
   });
 
-  it("deve chamar toast.warning quando receber uma mensagem válida em formato de objeto", () => {
+  it("deve chamar toast.warn quando receber uma mensagem válida em formato de objeto", () => {
     renderHook(() => useAlertsSSE("http://localhost:8080"));
 
     const payload = {
@@ -62,8 +62,8 @@ describe("useAlertsSSE Hook", () => {
 
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
-    expect(toast.warning).toHaveBeenCalledOnce();
-    expect(toast.warning).toHaveBeenCalledWith(
+    expect(toast.warn).toHaveBeenCalledOnce();
+    expect(toast.warn).toHaveBeenCalledWith(
       "Alerta de Temperatura: Cuidado! Temperatura muito alta.",
       expect.any(Object)
     );
@@ -82,8 +82,8 @@ describe("useAlertsSSE Hook", () => {
 
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
-    expect(toast.warning).toHaveBeenCalledOnce();
-    expect(toast.warning).toHaveBeenCalledWith(
+    expect(toast.warn).toHaveBeenCalledOnce();
+    expect(toast.warn).toHaveBeenCalledWith(
       "Alerta de Temperatura: Valor medido: 42.5 °C. Limite: 25 °C.",
       expect.any(Object)
     );
@@ -96,7 +96,7 @@ describe("useAlertsSSE Hook", () => {
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
 
-    expect(toast.warning).toHaveBeenCalledTimes(1);
+    expect(toast.warn).toHaveBeenCalledTimes(1);
   });
 
   it("deve lidar com erro na conexão do EventSource", () => {
@@ -115,7 +115,7 @@ describe("useAlertsSSE Hook", () => {
     
     eventSourceMock.onmessage?.({ data: "invalid json" });
     
-    expect(toast.warning).not.toHaveBeenCalled();
+    expect(toast.warn).not.toHaveBeenCalled();
   });
 
   it("deve disparar onClose do toast e chamar a rota de read, processando falha na chamada HTTP", async () => {
@@ -128,9 +128,9 @@ describe("useAlertsSSE Hook", () => {
     };
 
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
-    expect(toast.warning).toHaveBeenCalled();
+    expect(toast.warn).toHaveBeenCalled();
     
-    const options = (toast.warning as Mock).mock.calls[0][1] as { onClose: () => void };
+    const options = (toast.warn as Mock).mock.calls[0][1] as { onClose: () => void };
     global.fetch = vi.fn().mockRejectedValueOnce(new Error("Network Error"));
     options.onClose(); 
 
@@ -151,7 +151,7 @@ describe("useAlertsSSE Hook", () => {
       titulo: "Alerta",
     };
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
-    expect(toast.warning).not.toHaveBeenCalled();
+    expect(toast.warn).not.toHaveBeenCalled();
   });
 
   it("deve usar texto alternativo e fallback de descrição", () => {
@@ -162,7 +162,7 @@ describe("useAlertsSSE Hook", () => {
       texto: "Texto do alerta 13",
     };
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload1) });
-    expect(toast.warning).toHaveBeenCalledWith(
+    expect(toast.warn).toHaveBeenCalledWith(
       "Alerta Climático: Texto do alerta 13",
       expect.any(Object)
     );
@@ -171,7 +171,7 @@ describe("useAlertsSSE Hook", () => {
       id: 14,
     };
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload2) });
-    expect(toast.warning).toHaveBeenCalledWith(
+    expect(toast.warn).toHaveBeenCalledWith(
       "Alerta Climático: Valores medidos fora do limite.",
       expect.any(Object)
     );
@@ -181,7 +181,7 @@ describe("useAlertsSSE Hook", () => {
     renderHook(() => useAlertsSSE("http://localhost:8080"));
     const payload = { id: 100, titulo: "Sucesso" };
     eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
-    const options = (toast.warning as Mock).mock.calls[(toast.warning as Mock).mock.calls.length - 1][1] as { onClose: () => void };
+    const options = (toast.warn as Mock).mock.calls[(toast.warn as Mock).mock.calls.length - 1][1] as { onClose: () => void };
     global.fetch = vi.fn().mockResolvedValueOnce({ ok: true });
     options.onClose(); 
     expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/alerts/100/read", expect.objectContaining({ method: "PATCH" }));
