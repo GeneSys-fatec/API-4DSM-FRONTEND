@@ -6,7 +6,6 @@ import { StationManage } from "@/pages/StationManage";
 import { Login } from "../pages/Login";
 import { ProtectedRoute } from "../components/ProtectedRoute";
 import { AuthProvider } from "../contexts/AuthContext";
-import { Toaster } from 'react-hot-toast';
 import { Admin } from "@/pages/Admin";
 import { PublicLayout } from "@/components/Layout/publicLayout";
 import { PublicHome } from "@/pages/PublicHome";
@@ -16,8 +15,6 @@ import { MapView } from "@/pages/MapView";
 export function AppRoutes() {
   return (
     <AuthProvider>
-      <Toaster position="top-right" />
-
       <Routes>
 
         <Route element={<PublicLayout />}>

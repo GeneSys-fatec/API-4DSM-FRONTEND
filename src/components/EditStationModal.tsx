@@ -84,6 +84,7 @@ export function EditStationModal({ modal }: { modal: EditStationModalState }) {
       }
     } catch (error) {
         console.error("Erro na edição:", error);
+        toast.error("Não foi possível salvar as alterações da estação.");
     }
   };
 

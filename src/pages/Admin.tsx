@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Trash2, Pencil, Search } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "react-toastify";
 import { type Administrator, administratorService } from "../services/administrator-services";
 import { CreateAdminModal } from "../components/CreateAdminModal";
 import { EditAdminModal } from "../components/EditAdminModal";
