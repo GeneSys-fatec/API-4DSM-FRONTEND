@@ -271,7 +271,9 @@ export function useCreateStationModal(onCreated?: () => void | Promise<void>) {
       setIsCreating(true);
       try {
         const created = await createStation(form);
+        toast.success("Estação cadastrada com sucesso!");
         await onCreated?.();
+        setIsOpen(false);
         return created;
       } catch {
         setErrorMessage("Não foi possível cadastrar a estação.");
@@ -344,7 +346,9 @@ export function useEditStationModal(onUpdated?: () => void | Promise<void>) {
       setIsSaving(true);
       try {
         const updated = await updateStation(stationId, form);
+        toast.success("Estação atualizada com sucesso!");
         await onUpdated?.();
+        setIsOpen(false);
         return updated;
       } catch {
         setErrorMessage("Não foi possível atualizar a estação.");

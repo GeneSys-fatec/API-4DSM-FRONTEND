@@ -3,7 +3,6 @@ import { ParameterForm } from "@/components/forms/ParameterForm";
 import { TableBase } from "@/components/TableBody";
 import { Pencil, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { parameterService } from "@/services/parameter-service";
 import { toast } from "react-toastify";
 import { loadStoredFilters, persistFilters } from "@/utils/filter-storage";
@@ -40,7 +39,6 @@ const columns = [
         header: "Key",
         render: (item: Parameter) => item.json_key,
     },
-
     {
         key: "unit",
         header: "Unidade",
@@ -58,7 +56,6 @@ const columns = [
         tdClassName: "font-mono",
         render: (item: Parameter) => item.offset,
     },
-
 ];
 
 export function Parameters() {
@@ -169,9 +166,9 @@ export function Parameters() {
                     >
                         Cadastrar parâmetro
                     </button>
-
                 </div>
             </div>
+            
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 {parameters.length > 0 ? (
                     <>
@@ -191,7 +188,6 @@ export function Parameters() {
                                 </div>
                             )}
                         />
-
                     </>
                 ) : (
                     <div className="p-8 text-sm text-gray-500 flex justify-center items-center">
@@ -201,34 +197,23 @@ export function Parameters() {
                     </div>
                 )}
             </div>
-            {modalOpen && createPortal(
-                <div
-                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
-                    onClick={closeModal}
-                >
-                    <div onClick={(event) => event.stopPropagation()}>
-                        <ParameterForm
-                            onClose={closeModal}
-                            mode={editingParameter ? "edit" : "create"}
-                            parameter={editingParameter || undefined}
-                            onSuccess={handleFormSuccess}
-                        />
-                    </div>
-                </div>,
-                document.body
+
+            {/* Modais Renderizados Limpos! */}
+            {modalOpen && (
+                <ParameterForm
+                    onClose={closeModal}
+                    mode={editingParameter ? "edit" : "create"}
+                    parameter={editingParameter || undefined}
+                    onSuccess={handleFormSuccess}
+                />
             )}
-            {confirmDeleteOpen && createPortal(
-                <div
-                    className="fixed inset-0 z-[100] bg-black/40 flex items-center justify-center p-4"
-                    onClick={closeModal}
-                >
-                    <div onClick={(event) => event.stopPropagation()}>
-                        <ConfirmDelete onClose={closeModal} onConfirm={handleDeleteConfirm} />
-                    </div>
-                </div>,
-                document.body
-            )
-            }
+
+            {confirmDeleteOpen && (
+                <ConfirmDelete 
+                    onClose={closeModal} 
+                    onConfirm={handleDeleteConfirm} 
+                />
+            )}
         </div>
     )
 }
