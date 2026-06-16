@@ -186,4 +186,68 @@ describe("useAlertsSSE Hook", () => {
     options.onClose(); 
     expect(global.fetch).toHaveBeenCalledWith("http://localhost:8080/alerts/100/read", expect.objectContaining({ method: "PATCH" }));
   });
+
+  it("deve fechar a conexão antiga e abrir uma nova quando a URL mudar", () => {
+    const { rerender } = renderHook(({ url }) => useAlertsSSE(url), {
+      initialProps: { url: "http://localhost:8080" },
+    });
+
+    expect(EventSource).toHaveBeenCalledWith("http://localhost:8080/alerts/stream");
+
+    rerender({ url: "http://localhost:9090" });
+
+    expect(eventSourceMock.close).toHaveBeenCalled();
+    expect(EventSource).toHaveBeenCalledWith("http://localhost:9090/alerts/stream");
+  });
+
+  it("deve configurar o toast com autoClose de 10 segundos", () => {
+    renderHook(() => useAlertsSSE("http://localhost:8080"));
+    const payload = { id: 200, titulo: "Teste Config" };
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payload) });
+
+    expect(toast.warn).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ autoClose: 10000 })
+    );
+  });
+
+  it("deve notificar novamente se o mesmo ID tiver valores diferentes (anti-spam refinado)", () => {
+    renderHook(() => useAlertsSSE("http://localhost:8080"));
+    
+    const alert1 = { id: 300, triggeredValue: 10, occurredAt: "2026-01-01T10:00:00Z", titulo: "Alerta" };
+    const alert2 = { id: 300, triggeredValue: 20, occurredAt: "2026-01-01T10:00:00Z", titulo: "Alerta" };
+
+    eventSourceMock.onmessage?.({ data: JSON.stringify(alert1) });
+    eventSourceMock.onmessage?.({ data: JSON.stringify(alert2) });
+
+    expect(toast.warn).toHaveBeenCalledTimes(2);
+  });
+
+  it("não deve chamar toast.warn quando receber um array vazio", () => {
+    renderHook(() => useAlertsSSE("http://localhost:8080"));
+    eventSourceMock.onmessage?.({ data: JSON.stringify([]) });
+    expect(toast.warn).not.toHaveBeenCalled();
+  });
+
+  it("deve usar fallback total quando receber um objeto vazio", () => {
+    renderHook(() => useAlertsSSE("http://localhost:8080"));
+    eventSourceMock.onmessage?.({ data: JSON.stringify({}) });
+    
+    expect(toast.warn).toHaveBeenCalledWith(
+      "Alerta Climático: Valores medidos fora do limite.",
+      expect.any(Object)
+    );
+  });
+
+  it("deve processar e exibir múltiplos alertas vindos em um único array", () => {
+    renderHook(() => useAlertsSSE("http://localhost:8080"));
+    const payloads = [
+      { id: 401, titulo: "Alerta 1", description: "Desc 1" },
+      { id: 402, titulo: "Alerta 2", description: "Desc 2" },
+      { id: 403, titulo: "Alerta 3", description: "Desc 3" },
+    ];
+
+    eventSourceMock.onmessage?.({ data: JSON.stringify(payloads) });
+    expect(toast.warn).toHaveBeenCalledTimes(3);
+  });
 });
