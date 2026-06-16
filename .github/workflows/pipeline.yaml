@@ -69,3 +69,29 @@ jobs:
             pm2 describe frontend > /dev/null 2>&1 \
               && pm2 restart frontend \
               || pm2 serve dist 80 --name "frontend" --spa
+
+  deploy-develop:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    environment: develop
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy frontend to EC2 (develop)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_EC2_HOST }}
+          username: ${{ secrets.PROD_EC2_USER }}
+          key: ${{ secrets.PROD_EC2_SSH_KEY }}
+          script: |
+            cd ~/app/frontend
+            git fetch origin
+            git checkout develop
+            git pull origin develop
+            npm ci
+            npm run build
+            pm2 describe frontend > /dev/null 2>&1 \
+              && pm2 restart frontend \
+              || pm2 serve dist 80 --name "frontend" --spa
