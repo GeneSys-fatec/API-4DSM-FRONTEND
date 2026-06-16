@@ -8,7 +8,7 @@ import { measurementsService } from "@/services/measurements-service";
 import DataTable from 'datatables.net-dt';
 import 'datatables.net-buttons-dt';
 import 'datatables.net-buttons/js/buttons.html5.mjs';
-import { configureDataTableExportDependencies, getDefaultExportButtons } from '@/utils/reportsUtils';
+import { configureDataTableExportDependencies, getDefaultExportButtons } from '@/utils/weatherReportsUtils';
 import { createPortal } from "react-dom";
 import { shouldIncludeRowByDate, type ExportDateRange } from "./weatherTableDateFilter";
 
@@ -73,7 +73,6 @@ export function WeatherTable() {
         `${item.value != null ? Number(item.value).toLocaleString("pt-BR", { maximumFractionDigits: 1 }) : "--"} ${item.idParameter?.idTypeParam?.unit || ""}`.trim(),
         formatDateTime(item.collectedAt),
     ]), [measurements, stationName, id]);
-
 
     useEffect(() => {
         let isMounted = true;
@@ -181,6 +180,26 @@ export function WeatherTable() {
 
         const { pdfReady } = configureDataTableExportDependencies(DataTable);
 
+        const getExportHeaderContext = (): string => {
+            const now = new Date().toLocaleString("pt-BR");
+            const { from, to } = exportDateRangeRef.current;
+
+            let periodStr = "Todo o período disponível (Últimos 30 dias)";
+            if (from || to) {
+                const de = from ? from.replace('T', ' ') : "Início";
+                const ate = to ? to.replace('T', ' ') : "Fim";
+                periodStr = `${de} até ${ate}`;
+            }
+
+            return `Estação: ${stationName}\nPeríodo Filtrado: ${periodStr}\nGerado em: ${now}`;
+        };
+
+        const exportButtons = getDefaultExportButtons(exportRowsByRange, {
+            includePdf: pdfReady,
+            title: `Relatório_${stationName.replace(/\s+/g, '_') || id}`,
+            headerMessage: getExportHeaderContext
+        });
+
         const table = new DataTable(tableRef.current, {
             data: tableData,
             columns: [
@@ -212,7 +231,7 @@ export function WeatherTable() {
             autoWidth: false,
             layout: {
                 topStart: {
-                    buttons: getDefaultExportButtons(exportRowsByRange, { includePdf: pdfReady })
+                    buttons: exportButtons
                 },
                 topEnd: { search: { placeholder: 'Procurar...' } },
                 bottomStart: null,
@@ -286,7 +305,7 @@ export function WeatherTable() {
             dataTableRef.current = null;
             table.destroy();
         };
-    }, [isLoading, tableData]);
+    }, [isLoading, tableData, id, stationName]);
 
     useEffect(() => {
         if (!dataTableRef.current) {
