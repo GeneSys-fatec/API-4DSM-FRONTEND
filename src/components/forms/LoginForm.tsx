@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { authService } from '../../services/auth-service';
-import toast from 'react-hot-toast';
+import { toast } from 'react-toastify';
 
 export function LoginForm() {
   const [email, setEmail] = useState('');

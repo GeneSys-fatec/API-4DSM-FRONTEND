@@ -53,7 +53,7 @@ export const stationParameterService = {
             if (!response.ok) {
                 const erroDoBackend = await response.text();
                 console.error("⛔ ERRO DO BACKEND AO VINCULAR:", erroDoBackend);
-                toast.error(`Erro ${response.status} ao vincular parâmetro. Olhe o F12!`);
+                toast.error("Não foi possível vincular o parâmetro à estação.");
                 throw new Error(erroDoBackend);
             }
             
