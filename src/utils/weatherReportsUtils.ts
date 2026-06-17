@@ -31,6 +31,8 @@ export type ExportButtonConfig = {
   extend: 'csvHtml5' | 'excelHtml5' | 'pdfHtml5';
   text: string;
   className: string;
+  title?: string;
+  messageTop?: string | (() => string);
   exportOptions: {
     rows: ExportRowsFilter;
   };
@@ -186,25 +188,39 @@ export const configureDataTableExportDependencies = (dataTable: DataTableWithBut
 
 export const getDefaultExportButtons = (
   rowsFilter: ExportRowsFilter,
-  options?: { includePdf?: boolean },
+  options?: { 
+    includePdf?: boolean;
+    headerMessage?: string | (() => string); 
+    title?: string;
+  },
 ): ExportButtonConfig[] => {
+  
+  const defaultTitle = options?.title || 'Relatorio_Meteorologico';
+  const messageTop = options?.headerMessage;
+
   const buttons: ExportButtonConfig[] = [
     {
       extend: 'csvHtml5',
       text: 'CSV',
       className: 'weather-export-btn weather-export-btn--csv',
+      title: defaultTitle,
+      messageTop: messageTop,
       exportOptions: { rows: rowsFilter },
     },
     {
       extend: 'excelHtml5',
       text: 'Excel',
       className: 'weather-export-btn weather-export-btn--excel',
+      title: defaultTitle,
+      messageTop: messageTop,
       exportOptions: { rows: rowsFilter },
     },
     {
       extend: 'pdfHtml5',
       text: 'PDF',
       className: 'weather-export-btn weather-export-btn--pdf',
+      title: defaultTitle,
+      messageTop: messageTop,
       exportOptions: { rows: rowsFilter },
       customize: (doc) => stylePdfBody(doc as PdfDocument),
     }
