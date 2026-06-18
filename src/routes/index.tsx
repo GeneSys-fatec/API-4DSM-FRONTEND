@@ -11,6 +11,7 @@ import { PublicLayout } from "@/components/Layout/publicLayout";
 import { PublicHome } from "@/pages/PublicHome";
 import { WeatherDatas } from "@/pages/WeatherDatas";
 import { MapView } from "@/pages/MapView";
+import { Profile } from "@/pages/Profile";
 
 export function AppRoutes() {
   return (
@@ -33,6 +34,7 @@ export function AppRoutes() {
             <Route path="/admin/gerenciar-estacoes" element={<StationManage />} />
             <Route path="/admin/gerenciar-administradores" element={<Admin />} />
             <Route path="/admin/mapa" element={<MapView mode="admin" />} />
+            <Route path="/admin/perfil" element={<Profile />} />
           </Route>
         </Route>
       </Routes>

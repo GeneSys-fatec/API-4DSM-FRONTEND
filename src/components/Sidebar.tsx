@@ -1,4 +1,5 @@
-import { NavLink } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { NavLink, Link } from "react-router-dom";
 import {
   LayoutDashboard,
   Wifi,
@@ -10,6 +11,7 @@ import {
   Map,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+import { administratorService } from "../services/administrator-services";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -18,6 +20,31 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
   const { logout } = useAuth();
+  const [adminProfile, setAdminProfile] = useState<{ name: string; email: string } | null>(null);
+
+  const fetchProfile = async () => {
+    try {
+      const profile = await administratorService.getMe();
+      if (profile) {
+        setAdminProfile({ name: profile.name, email: profile.email });
+      }
+    } catch (error) {
+      console.error("Erro ao carregar perfil na barra lateral:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+
+    const handleProfileUpdate = () => {
+      fetchProfile();
+    };
+
+    window.addEventListener("profile-updated", handleProfileUpdate);
+    return () => {
+      window.removeEventListener("profile-updated", handleProfileUpdate);
+    };
+  }, []);
 
   const menuItems = [
     {
@@ -55,20 +82,26 @@ export function Sidebar({ isOpen, closeMenu }: SidebarProps) {
           <X className="w-6 h-6" />
         </button>
 
-        <div className="flex items-center mx-2 px-3 mb-8 shrink-0 mt-8 md:mt-0">
+        <Link
+          to="/admin/perfil"
+          onClick={closeMenu}
+          className="flex items-center mx-2 px-3 mb-8 shrink-0 mt-8 md:mt-0 hover:bg-gray-50 p-2 rounded-xl transition-all cursor-pointer overflow-hidden border border-transparent hover:border-gray-100"
+        >
           <div className="w-10 flex justify-center shrink-0">
             <div className="w-10 h-10 rounded-xl bg-tecsus-green text-white flex items-center justify-center font-bold shadow-sm">
-              A
+              {adminProfile?.name ? adminProfile.name.charAt(0).toUpperCase() : "A"}
             </div>
           </div>
 
-          <div className="flex flex-col pl-3 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300">
-            <span className="text-sm font-bold text-gray-900">
-              Administrador
+          <div className="flex flex-col pl-3 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 overflow-hidden">
+            <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">
+              {adminProfile?.name || "Administrador"}
             </span>
-            <span className="text-xs text-gray-500">admin@admin.com</span>
+            <span className="text-xs text-gray-500 truncate max-w-[150px]">
+              {adminProfile?.email || "admin@admin.com"}
+            </span>
           </div>
-        </div>
+        </Link>
 
         <nav className="flex-1 flex flex-col gap-2">
           {menuItems.map((item) => (
