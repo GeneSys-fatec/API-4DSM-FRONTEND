@@ -40,7 +40,7 @@ export function DeleteStationModal({
           <div>
             <h2 className="text-base font-bold text-gray-900">Excluir Estação</h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Essa ação não pode ser desfeita.
+              Essa ação é irreversível.
             </p>
           </div>
           <button

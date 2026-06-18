@@ -3,9 +3,10 @@ import { TriangleAlert } from "lucide-react";
 interface ConfirmDeleteProps {
     onClose: () => void;
     onConfirm: () => void | Promise<void>;
+    itemName?: string;
 }
 
-export function ConfirmDelete({ onClose, onConfirm }: ConfirmDeleteProps) {
+export function ConfirmDelete({ onClose, onConfirm, itemName }: ConfirmDeleteProps) {
     return (
         <div className="flex flex-col justify-center items-center max-w-md rounded-xl bg-white p-6 md:p-8 shadow-xl border border-gray-100">
             <div className="mb-5 flex flex-col items-center gap-4">
@@ -17,15 +18,20 @@ export function ConfirmDelete({ onClose, onConfirm }: ConfirmDeleteProps) {
                     &times;
                 </button>
                 <TriangleAlert className="text-red-600 w-10 h-10" />
-                <p className="flex flex-col text-center font-semibold">Tem certeza que deseja excluir esse item? 
-                    <span className="text-sm text-red-600"> 
-                        Essa ação não pode ser revertida.
+                <p className="flex flex-col text-center font-semibold">
+                    {itemName ? (
+                        <span>Tem certeza que deseja excluir "{itemName}"?</span>
+                    ) : (
+                        <span>Tem certeza que deseja excluir esse item?</span>
+                    )}
+                    <span className="text-sm text-red-600 font-normal mt-1"> 
+                        Essa ação é irreversível.
                     </span>
                 </p>
             </div>
             <div className="flex gap-2">
                 <button type="button"
-                    className="bg-gray-400 font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md"
+                    className="bg-gray-400 font-semibold text-sm p-2 gap-2 opacity-80 hover:opacity-100 cursor-pointer rounded-md text-white"
                     onClick={onClose}>
                     Cancelar
                 </button>
@@ -38,5 +44,5 @@ export function ConfirmDelete({ onClose, onConfirm }: ConfirmDeleteProps) {
                 </button>
             </div>
         </div>
-    )
+    );
 }

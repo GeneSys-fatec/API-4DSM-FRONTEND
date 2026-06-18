@@ -223,7 +223,11 @@ export function Parameters() {
                     onClick={closeModal}
                 >
                     <div onClick={(event) => event.stopPropagation()}>
-                        <ConfirmDelete onClose={closeModal} onConfirm={handleDeleteConfirm} />
+                        <ConfirmDelete
+                            onClose={closeModal}
+                            onConfirm={handleDeleteConfirm}
+                            itemName={parameterToDelete?.name}
+                        />
                     </div>
                 </div>,
                 document.body

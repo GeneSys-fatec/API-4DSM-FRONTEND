@@ -244,6 +244,7 @@ export function Admin() {
                         <ConfirmDelete
                             onClose={closeModal}
                             onConfirm={handleDeleteConfirm}
+                            itemName={adminToDelete?.name}
                         />
                     </div>
                 </div>,
