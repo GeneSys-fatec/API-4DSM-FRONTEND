@@ -53,6 +53,19 @@ export const administratorService = {
         }
     },
 
+    getMe: async (): Promise<Administrator | null> => {
+        try {
+            const response = await apiFetch(`/administrator/me`);
+            if (!response.ok) {
+                throw new Error("Erro ao buscar informações do perfil");
+            }
+            return await response.json();
+        } catch (error) {
+            console.error("Erro ao buscar perfil do administrador logado:", error);
+            return null;
+        }
+    },
+
     create: async (data: CreateAdminPayload): Promise<Administrator> => {
         const response = await apiFetch(`/administrator/create`, {
             method: 'POST',
@@ -63,11 +76,12 @@ export const administratorService = {
         return responseData;
     },
 
-    update: async (id: number, data: Partial<CreateAdminPayload>): Promise<Administrator> => {
+    update: async (id: number, data: Partial<CreateAdminPayload> & { currentPassword?: string }): Promise<Administrator> => {
         const payload = {
             newName: data.name,
             newEmail: data.email,
             newPassword: data.password,
+            currentPassword: data.currentPassword,
         };
         const response = await apiFetch(`/administrator/update/${id}`, {
             method: 'PUT',
